@@ -1,0 +1,130 @@
+{
+    "foo": {
+        "items": [
+            {
+                "name": "a",
+                "kind": {
+                    "FunctionItem": {
+                        "decl": {
+                            "inputs": {
+                                "values": []
+                            },
+                            "output": "DefaultReturn",
+                            "c_variadic": false
+                        },
+                        "generics": {
+                            "params": [],
+                            "where_predicates": []
+                        }
+                    }
+                },
+                "path": "foo",
+                "desc": ""
+            },
+            {
+                "name": "answer_of_everything",
+                "kind": {
+                    "FunctionItem": {
+                        "decl": {
+                            "inputs": {
+                                "values": []
+                            },
+                            "output": {
+                                "Return": {
+                                    "Primitive": "Usize"
+                                }
+                            },
+                            "c_variadic": false
+                        },
+                        "generics": {
+                            "params": [],
+                            "where_predicates": []
+                        }
+                    }
+                },
+                "path": "",
+                "desc": ""
+            },
+            {
+                "name": "b",
+                "kind": {
+                    "FunctionItem": {
+                        "decl": {
+                            "inputs": {
+                                "values": []
+                            },
+                            "output": "DefaultReturn",
+                            "c_variadic": false
+                        },
+                        "generics": {
+                            "params": [],
+                            "where_predicates": []
+                        }
+                    }
+                },
+                "path": "",
+                "desc": ""
+            },
+            {
+                "name": "c",
+                "kind": {
+                    "FunctionItem": {
+                        "decl": {
+                            "inputs": {
+                                "values": []
+                            },
+                            "output": "DefaultReturn",
+                            "c_variadic": false
+                        },
+                        "generics": {
+                            "params": [],
+                            "where_predicates": []
+                        }
+                    }
+                },
+                "path": "",
+                "desc": ""
+            },
+            {
+                "name": "d",
+                "kind": {
+                    "FunctionItem": {
+                        "decl": {
+                            "inputs": {
+                                "values": []
+                            },
+                            "output": "DefaultReturn",
+                            "c_variadic": false
+                        },
+                        "generics": {
+                            "params": [],
+                            "where_predicates": []
+                        }
+                    }
+                },
+                "path": "",
+                "desc": ""
+            },
+            {
+                "name": "e",
+                "kind": {
+                    "FunctionItem": {
+                        "decl": {
+                            "inputs": {
+                                "values": []
+                            },
+                            "output": "DefaultReturn",
+                            "c_variadic": false
+                        },
+                        "generics": {
+                            "params": [],
+                            "where_predicates": []
+                        }
+                    }
+                },
+                "path": "",
+                "desc": ""
+            }
+        ]
+    }
+}

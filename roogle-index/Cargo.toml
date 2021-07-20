@@ -1,0 +1,10 @@
+[package]
+name = "roogle-index"
+version = "0.1.0"
+authors = ["Hirochika Matsumoto <git@hkmatsumoto.com>"]
+edition = "2018"
+repository = "https://github.com/hkmatsumoto/roogle"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive", "rc"] }

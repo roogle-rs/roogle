@@ -1,0 +1,15 @@
+{
+    "name": null,
+    "kind": {
+        "FunctionQuery": {
+            "decl": {
+                "inputs": [],
+                "output": {
+                    "Return": {
+                        "Primitive": "Usize"
+                    }
+                }
+            }
+        }
+    }
+}

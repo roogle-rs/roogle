@@ -1,5 +1,17 @@
-[workspace]
-members = [
-    "roogle",
-    "roogle-indexer"
-]
+[package]
+name = "roogle"
+version = "0.1.0"
+authors = ["Hirochika Matsumoto <git@hkmatsumoto.com>"]
+edition = "2018"
+description = "A Rust API search engine"
+readme = "README.md"
+repository = "https://github.com/hkmatsumoto/roogle"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+roogle-engine = { version = "0.1.0", path = "roogle-engine" }
+roogle-index = { version = "0.1.0", path = "roogle-index" }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+structopt = "0.3"
