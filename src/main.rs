@@ -36,7 +36,7 @@ fn main() {
             let keys = index.crates.keys();
             if keys.len() == 1 {
                 // In this case, though the user didn't pass `--krate`, we can infer what crate to use.
-                keys.into_iter().nth(0).unwrap().clone()
+                keys.into_iter().next().unwrap().clone()
             } else {
                 panic!("Please specify which crate to query in, using `--krate` argument.")
             }
