@@ -2,14 +2,14 @@ use roogle_index::types as index;
 
 use crate::types::*;
 
-pub(crate) trait Approximate {
+pub trait Approximate {
     type Item;
 
     fn approx(&self, item: &Self::Item) -> Vec<Similarity>;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum Similarity {
+pub enum Similarity {
     Equivalent,
     Subequal,
     Different,
