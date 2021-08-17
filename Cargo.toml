@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 nom = "6.2"
-roogle-engine = { version = "0.1.0", path = "roogle-engine" }
+roogle-engine = { version = "0.1.1", path = "roogle-engine" }
 roogle-index = { version = "0.1.0", path = "roogle-index" }
 rustyline = "8.2.0"
 
