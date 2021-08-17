@@ -1,10 +1,11 @@
-use std::cmp::min;
 use std::path::{Path, PathBuf};
 
+use nom::error::ErrorKind;
+use rustyline::Editor;
 use structopt::StructOpt;
 
 use roogle_engine::exec::QueryExecutor;
-use roogle_engine::types::Query;
+use roogle_engine::parse::parse_query;
 use roogle_index::types::Index;
 
 #[derive(StructOpt, Debug)]
@@ -16,7 +17,7 @@ struct Config {
     index: PathBuf,
 
     #[structopt(short, long, parse(from_os_str))]
-    query: PathBuf,
+    query: Option<PathBuf>,
 }
 
 fn read_json(path: impl AsRef<Path>) -> String {
@@ -27,8 +28,6 @@ fn main() {
     let cfg = Config::from_args();
     let index: Index =
         serde_json::from_str(&read_json(cfg.index)).expect("failed in deserializing index");
-    let query: Query =
-        serde_json::from_str(&read_json(cfg.query)).expect("failed in deserializing query");
 
     let krate = match cfg.krate {
         Some(krate) => krate,
@@ -44,8 +43,37 @@ fn main() {
     };
 
     let qe = QueryExecutor::new(krate, index);
-    let results = qe.exec(&query);
-    for i in 0..min(results.len(), 3) {
-        println!("{:#?}", results[i]);
+    match cfg.query {
+        None => repl(qe),
+        Some(query) => {
+            let query =
+                serde_json::from_str(&read_json(query)).expect("failed in deserializing query");
+            let results = qe.exec(&query);
+            results
+                .iter()
+                .take(1)
+                .for_each(|result| println!("{:#?}", result));
+        }
+    }
+}
+
+fn repl(qe: QueryExecutor) {
+    let mut rl = Editor::<()>::new();
+    loop {
+        let readline = rl.readline("> ");
+        match readline {
+            Ok(line) => {
+                let query = parse_query::<(&str, ErrorKind)>(&line)
+                    .expect("parse failed")
+                    .1;
+                println!("query={:?}", &query);
+                let results = qe.exec(&query);
+                results
+                    .iter()
+                    .take(1)
+                    .for_each(|result| println!("{:#?}", result));
+            }
+            _ => panic!("repl failed"),
+        }
     }
 }

@@ -1,39 +1,39 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Query {
     pub name: Option<Symbol>,
     pub kind: Option<QueryKind>,
 }
 
 #[non_exhaustive]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum QueryKind {
     FunctionQuery(Function),
 }
 
 #[non_exhaustive]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Function {
     pub decl: FnDecl,
     // pub generics: Generics,
 }
 
 #[non_exhaustive]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FnDecl {
-    pub inputs: Option<Vec<Option<Argument>>>,
+    pub inputs: Option<Vec<Argument>>,
     pub output: Option<FnRetTy>,
     // pub c_variadic: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Argument {
     pub ty: Option<Type>,
     pub name: Option<Symbol>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum FnRetTy {
     Return(Type),
     DefaultReturn,
@@ -42,14 +42,14 @@ pub enum FnRetTy {
 pub type Symbol = String;
 
 #[non_exhaustive]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Type {
     Primitive(PrimitiveType),
 }
 
 /// N.B. this has to be different from `hir::PrimTy` because it also includes types that aren't
 /// paths, like `Unit`.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum PrimitiveType {
     Isize,
     I8,

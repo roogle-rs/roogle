@@ -78,10 +78,7 @@ impl Approximate for FnDecl {
             inputs
                 .iter()
                 .enumerate()
-                .for_each(|(idx, input)| match input {
-                    Some(input) => sims.append(&mut input.approx(&decl.inputs.values[idx])),
-                    None => sims.push(Different),
-                })
+                .for_each(|(idx, input)| sims.append(&mut input.approx(&decl.inputs.values[idx])))
         }
 
         if let Some(ref output) = self.output {
@@ -128,6 +125,7 @@ impl Approximate for Type {
     fn approx(&self, type_: &Self::Item) -> Vec<Similarity> {
         match (self, type_) {
             (Type::Primitive(ptq), index::Type::Primitive(pqi)) => ptq.approx(pqi),
+            (Type::Primitive(_), _) => vec![Different],
             _ => unimplemented!(),
         }
     }
