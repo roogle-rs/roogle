@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::rc::Rc;
 
 use roogle_index::types as index;
@@ -20,17 +21,23 @@ impl QueryExecutor {
 
     pub fn exec(&self, query: &Query) -> Vec<Rc<index::IndexItem>> {
         if let Some(krate) = self.index.crates.get(&self.krate) {
-            let mut items_with_sims: Vec<_> = krate
-                .items
-                .iter()
-                .map(|item| (item, query.approx(item)))
-                .collect();
+            let mut items_with_sims = Vec::new();
+            for item in &krate.items {
+                use index::ItemKind::*;
+                match &*item.kind {
+                    FunctionItem(function) => items_with_sims.push((
+                        item,
+                        query.approx(&item, &index::Generics::new(), &mut HashMap::new()),
+                    )),
+                    _ => (),
+                }
+            }
             items_with_sims.sort_by(|a, b| a.1.cmp(&b.1));
 
             items_with_sims
                 .into_iter()
                 .map(|(item, _)| item)
-                .map(Rc::clone)
+                .map(|item| Rc::clone(&item))
                 .collect()
         } else {
             Vec::new()

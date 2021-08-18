@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use serde::Deserialize;
 
-type Symbol = String;
+pub type Symbol = String;
 
 #[non_exhaustive]
 #[derive(Deserialize, Clone, Debug)]
@@ -147,6 +147,24 @@ pub struct GenericParamDef {
 pub struct Generics {
     pub params: Vec<GenericParamDef>,
     pub where_predicates: Vec<WherePredicate>,
+}
+
+impl Generics {
+    pub fn new() -> Self {
+        Generics {
+            ..Default::default()
+        }
+    }
+
+    pub fn compose(&self, other: &Self) -> Self {
+        let params = self.params.iter().chain(other.params.iter()).map(|param| param.clone()).collect();
+        let where_predicates = self.where_predicates.iter().chain(other.where_predicates.iter()).map(|wp| wp.clone()).collect();
+
+        Generics {
+            params,
+            where_predicates
+        }
+    }
 }
 
 #[derive(Deserialize, Clone, Debug)]

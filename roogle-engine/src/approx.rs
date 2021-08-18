@@ -1,11 +1,17 @@
+use std::collections::HashMap;
+use std::rc::Rc;
+
 use roogle_index::types as index;
 
 use crate::types::*;
 
-pub trait Approximate {
-    type Item;
-
-    fn approx(&self, item: &Self::Item) -> Vec<Similarity>;
+pub trait Approximate<Destination> {
+    fn approx(
+        &self,
+        dest: &Destination,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity>;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -17,29 +23,35 @@ pub enum Similarity {
 
 use Similarity::*;
 
-impl Approximate for Query {
-    type Item = index::IndexItem;
-
-    fn approx(&self, item: &Self::Item) -> Vec<Similarity> {
+impl Approximate<index::IndexItem> for Query {
+    fn approx(
+        &self,
+        item: &index::IndexItem,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity> {
         let mut sims = Vec::new();
 
         if let Some(ref name) = self.name {
-            sims.append(&mut name.approx(&item.name))
+            sims.append(&mut name.approx(&item.name, generics, substs))
         }
 
         if let Some(ref kind) = self.kind {
-            sims.append(&mut kind.approx(&item.kind))
+            sims.append(&mut kind.approx(&item.kind, generics, substs))
         }
 
         sims
     }
 }
 
-impl Approximate for String {
-    type Item = String;
-
-    fn approx(&self, item: &Self::Item) -> Vec<Similarity> {
-        if self == item {
+impl Approximate<index::Symbol> for Symbol {
+    fn approx(
+        &self,
+        symbol: &index::Symbol,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity> {
+        if self == symbol {
             vec![Equivalent]
         } else {
             vec![Different]
@@ -47,99 +59,126 @@ impl Approximate for String {
     }
 }
 
-impl Approximate for QueryKind {
-    type Item = index::ItemKind;
-
-    fn approx(&self, kind: &Self::Item) -> Vec<Similarity> {
+impl Approximate<index::ItemKind> for QueryKind {
+    fn approx(
+        &self,
+        kind: &index::ItemKind,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity> {
         use index::ItemKind::*;
         use QueryKind::*;
         match (self, kind) {
-            (FunctionQuery(fq), FunctionItem(fi)) => fq.approx(fi),
+            (FunctionQuery(fq), FunctionItem(fi)) => fq.approx(fi, generics, substs),
             _ => vec![Different],
         }
     }
 }
 
-impl Approximate for Function {
-    type Item = index::Function;
+impl Approximate<index::Function> for Function {
+    fn approx(
+        &self,
+        function: &index::Function,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity> {
+        let generics = generics.compose(&function.generics);
 
-    fn approx(&self, function: &Self::Item) -> Vec<Similarity> {
-        self.decl.approx(&function.decl)
+        self.decl.approx(&function.decl, &generics, substs)
     }
 }
 
-impl Approximate for FnDecl {
-    type Item = index::FnDecl;
-
-    fn approx(&self, decl: &Self::Item) -> Vec<Similarity> {
+impl Approximate<index::FnDecl> for FnDecl {
+    fn approx(
+        &self,
+        decl: &index::FnDecl,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity> {
         let mut sims = Vec::new();
 
         if let Some(ref inputs) = self.inputs {
             inputs
                 .iter()
                 .enumerate()
-                .for_each(|(idx, input)| sims.append(&mut input.approx(&decl.inputs.values[idx])))
+                .for_each(|(idx, input)| match decl.inputs.values.get(idx) {
+                    Some(arg) => sims.append(&mut input.approx(arg, generics, substs)),
+                    None => sims.push(Different),
+                })
         }
 
         if let Some(ref output) = self.output {
-            sims.append(&mut output.approx(&decl.output))
+            sims.append(&mut output.approx(&decl.output, generics, substs))
         }
 
         sims
     }
 }
 
-impl Approximate for Argument {
-    type Item = index::Argument;
-
-    fn approx(&self, item: &Self::Item) -> Vec<Similarity> {
+impl Approximate<index::Argument> for Argument {
+    fn approx(
+        &self,
+        arg: &index::Argument,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity> {
         let mut sims = Vec::new();
 
         if let Some(ref type_) = self.ty {
-            sims.append(&mut type_.approx(&item.type_))
+            sims.append(&mut type_.approx(&arg.type_, generics, substs))
         }
 
         if let Some(ref name) = self.name {
-            sims.append(&mut name.approx(&item.name))
+            sims.append(&mut name.approx(&arg.name, generics, substs))
         }
 
         sims
     }
 }
 
-impl Approximate for FnRetTy {
-    type Item = index::FnRetTy;
-
-    fn approx(&self, ret: &Self::Item) -> Vec<Similarity> {
+impl Approximate<index::FnRetTy> for FnRetTy {
+    fn approx(
+        &self,
+        ret: &index::FnRetTy,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity> {
         match (self, ret) {
-            (FnRetTy::Return(tq), index::FnRetTy::Return(ti)) => tq.approx(ti),
+            (FnRetTy::Return(q), index::FnRetTy::Return(i)) => q.approx(i, generics, substs),
             (FnRetTy::DefaultReturn, index::FnRetTy::DefaultReturn) => vec![Equivalent],
             _ => vec![Different],
         }
     }
 }
 
-impl Approximate for Type {
-    type Item = index::Type;
-
-    fn approx(&self, type_: &Self::Item) -> Vec<Similarity> {
+impl Approximate<index::Type> for Type {
+    fn approx(
+        &self,
+        type_: &index::Type,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity> {
+        use Type::*;
         match (self, type_) {
-            (Type::Primitive(ptq), index::Type::Primitive(pqi)) => ptq.approx(pqi),
-            (Type::Primitive(_), _) => vec![Different],
+            (Primitive(q), index::Type::Primitive(i)) => q.approx(i, generics, substs),
+            (Primitive(_), _) => vec![Different],
             _ => unimplemented!(),
         }
     }
 }
 
-impl Approximate for PrimitiveType {
-    type Item = index::PrimitiveType;
-
-    fn approx(&self, pt: &Self::Item) -> Vec<Similarity> {
+impl Approximate<index::PrimitiveType> for PrimitiveType {
+    fn approx(
+        &self,
+        prim_ty: &index::PrimitiveType,
+        generics: &index::Generics,
+        substs: &mut HashMap<Symbol, Type>,
+    ) -> Vec<Similarity> {
         use PrimitiveType::*;
-        // TODO(hkmatsumoto): Do this more elegantly with macro.
-        match (self, pt) {
-            (Isize, index::PrimitiveType::Isize) => vec![Equivalent],
-            (Usize, index::PrimitiveType::Usize) => vec![Equivalent],
+        match (self, prim_ty) {
+            (Isize, index::PrimitiveType::Isize) | (Usize, index::PrimitiveType::Usize) => {
+                vec![Equivalent]
+            }
             _ => vec![Different],
         }
     }
