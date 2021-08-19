@@ -205,6 +205,20 @@ impl Approximate<types::Type> for Type {
 
         use Type::*;
         match (self, type_) {
+            (q, types::Type::Generic(i)) => match substs.get(i) {
+                Some(i) => {
+                    if q == i {
+                        vec![Equivalent]
+                    } else {
+                        vec![Different]
+                    }
+                }
+                None => {
+                    substs.insert(i.clone(), q.clone());
+                    vec![Equivalent]
+                }
+            },
+            (q, types::Type::BorrowedRef { type_: i, .. }) => q.approx(i, generics, substs),
             (Primitive(q), types::Type::Primitive(i)) => q.approx(i, generics, substs),
             (Primitive(_), _) => vec![Different],
             _ => unimplemented!(),
