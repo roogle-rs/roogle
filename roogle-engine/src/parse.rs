@@ -93,8 +93,8 @@ where
                 }),
                 map(parse_type, |ty| Argument {
                     ty: Some(ty),
-                    name: None
-                })
+                    name: None,
+                }),
             )),
         ),
     )(i)
