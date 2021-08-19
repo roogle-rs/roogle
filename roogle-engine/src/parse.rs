@@ -71,7 +71,7 @@ where
         alt((map(tag(".."), |_| None), opt(parse_arguments))),
         char(')'),
     )(i)?;
-    let (i, output) = alt((map(char('_'), |_| None), opt(parse_output)))(i)?;
+    let (i, output) = opt(parse_output)(i)?;
 
     let decl = FnDecl { inputs, output };
     Ok((i, decl))
@@ -135,6 +135,20 @@ where
 {
     alt((
         map(tag("isize"), |_| PrimitiveType::Isize),
+        map(tag("i8"), |_| PrimitiveType::I8),
+        map(tag("i16"), |_| PrimitiveType::I16),
+        map(tag("i32"), |_| PrimitiveType::I32),
+        map(tag("i64"), |_| PrimitiveType::I64),
+        map(tag("i128"), |_| PrimitiveType::I128),
         map(tag("usize"), |_| PrimitiveType::Usize),
+        map(tag("u8"), |_| PrimitiveType::U8),
+        map(tag("u16"), |_| PrimitiveType::U16),
+        map(tag("u32"), |_| PrimitiveType::U32),
+        map(tag("u64"), |_| PrimitiveType::U64),
+        map(tag("u128"), |_| PrimitiveType::U128),
+        map(tag("f32"), |_| PrimitiveType::F32),
+        map(tag("f64"), |_| PrimitiveType::F64),
+        map(tag("char"), |_| PrimitiveType::Char),
+        map(tag("bool"), |_| PrimitiveType::Bool),
     ))(i)
 }
