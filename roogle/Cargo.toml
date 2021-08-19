@@ -1,10 +1,10 @@
 [package]
 name = "roogle"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Hirochika Matsumoto <git@hkmatsumoto.com>"]
 edition = "2018"
 description = "A Rust API search engine"
-readme = "README.md"
+readme = "../README.md"
 repository = "https://github.com/hkmatsumoto/roogle"
 license = "MIT OR Apache-2.0"
 
