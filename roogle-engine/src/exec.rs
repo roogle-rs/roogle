@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use rustdoc_types::*;
 
-use crate::approx::Approximate;
+use crate::approx::{Approximate, Similarity};
 use crate::types::Query;
 
 pub struct QueryExecutor {
@@ -22,7 +22,9 @@ impl QueryExecutor {
                     let mut sims = query.approx(item, &Generics::default(), &mut HashMap::new());
                     sims.sort();
 
-                    items_with_sims.push((&item.id, sims))
+                    if sims.iter().any(|sim| sim != &Similarity::Different) {
+                        items_with_sims.push((&item.id, sims))
+                    }
                 }
                 _ => (),
             }
