@@ -32,6 +32,7 @@ impl Approximate<types::Item> for Query {
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("-------------------------------");
         info!("Approximating `Query` to `Item`");
         trace!("approx(lhs={:?}, rhs={:?})", self, item);
 
@@ -87,6 +88,7 @@ impl Approximate<types::ItemEnum> for QueryKind {
         use QueryKind::*;
         match (self, kind) {
             (FunctionQuery(q), Function(i)) => q.approx(i, generics, substs),
+            (FunctionQuery(q), Method(i)) => q.approx(i, generics, substs),
             _ => vec![Different],
         }
     }
@@ -105,6 +107,26 @@ impl Approximate<types::Function> for Function {
 
         // update `generics` using `function.generics`
         self.decl.approx(&function.decl, generics, substs)
+    }
+}
+
+impl Approximate<types::Method> for Function {
+    #[logfn(info, fmt = "Approximating `Function` to `Method` finished: {:?}")]
+    fn approx(
+        &self,
+        method: &types::Method,
+        generics: &types::Generics,
+        substs: &mut HashMap<String, Type>,
+    ) -> Vec<Similarity> {
+        info!("Approximating `Function` to `Method`");
+        trace!(
+            "approx(lhs: {:?}, rhs: {:?}, generics: {:?})",
+            self,
+            method,
+            generics
+        );
+
+        self.decl.approx(&method.decl, generics, substs)
     }
 }
 
@@ -128,7 +150,12 @@ impl Approximate<types::FnDecl> for FnDecl {
                 .for_each(|(idx, input)| match decl.inputs.get(idx) {
                     Some(arg) => sims.append(&mut input.approx(arg, generics, substs)),
                     None => sims.push(Different),
-                })
+                });
+
+            if decl.inputs.len() > inputs.len() {
+                let extra = decl.inputs.len() - inputs.len();
+                sims.append(&mut vec![Different; extra])
+            }
         }
 
         if let Some(ref output) = self.output {
@@ -205,19 +232,30 @@ impl Approximate<types::Type> for Type {
 
         use Type::*;
         match (self, type_) {
-            (q, types::Type::Generic(i)) => match substs.get(i) {
-                Some(i) => {
-                    if q == i {
-                        vec![Equivalent]
-                    } else {
-                        vec![Different]
+            (q, types::Type::Generic(i)) => {
+                if i == "Self" {
+                    for where_predicate in &generics.where_predicates {
+                        if let types::WherePredicate::EqPredicate { lhs, rhs } = where_predicate {
+                            if lhs == &types::Type::Generic("Self".to_owned()) {
+                                return q.approx(rhs, generics, substs);
+                            }
+                        }
                     }
                 }
-                None => {
-                    substs.insert(i.clone(), q.clone());
-                    vec![Equivalent]
+                match substs.get(i) {
+                    Some(i) => {
+                        if q == i {
+                            vec![Subequal]
+                        } else {
+                            vec![Different]
+                        }
+                    }
+                    None => {
+                        substs.insert(i.clone(), q.clone());
+                        vec![Subequal]
+                    }
                 }
-            },
+            }
             (q, types::Type::BorrowedRef { type_: i, .. }) => q.approx(i, generics, substs),
             (Primitive(q), types::Type::Primitive(i)) => q.approx(i, generics, substs),
             (Primitive(_), _) => vec![Different],

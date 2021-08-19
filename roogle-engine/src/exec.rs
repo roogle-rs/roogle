@@ -20,10 +20,27 @@ impl QueryExecutor {
             match item.inner {
                 ItemEnum::Function(_) => {
                     let mut sims = query.approx(item, &Generics::default(), &mut HashMap::new());
-                    sims.sort();
 
                     if sims.iter().any(|sim| sim != &Similarity::Different) {
+                        sims.sort();
                         items_with_sims.push((&item.id, sims))
+                    }
+                }
+                ItemEnum::Impl(ref impl_) => {
+                    let mut generics = Generics::default();
+                    generics.where_predicates.push(WherePredicate::EqPredicate {
+                        lhs: Type::Generic("Self".to_owned()),
+                        rhs: impl_.for_.clone(),
+                    });
+
+                    for item in &impl_.items {
+                        let item = self.krate.index.get(item).unwrap();
+                        let mut sims = query.approx(item, &generics, &mut HashMap::new());
+
+                        if sims.iter().any(|sim| sim != &Similarity::Different) {
+                            sims.sort();
+                            items_with_sims.push((&item.id, sims))
+                        }
                     }
                 }
                 _ => (),
