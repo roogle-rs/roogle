@@ -18,10 +18,12 @@ impl QueryExecutor {
         let mut items_with_sims = Vec::new();
         for item in self.krate.index.values() {
             match item.inner {
-                ItemEnum::Function(_) => items_with_sims.push((
-                    &item.id,
-                    query.approx(item, &Generics::default(), &mut HashMap::new()),
-                )),
+                ItemEnum::Function(_) => {
+                    let mut sims = query.approx(item, &Generics::default(), &mut HashMap::new());
+                    sims.sort();
+
+                    items_with_sims.push((&item.id, sims))
+                }
                 _ => (),
             }
         }
