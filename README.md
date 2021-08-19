@@ -18,5 +18,5 @@ Current available features are listed below.
 ```sh
 $ cargo build --release
 $ cargo run --release --quiet -- --index assets/index/std.json
-> fn align_of(..) -> usize
+> fn (usize, usize) -> bool
 ```
