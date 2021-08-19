@@ -91,6 +91,10 @@ where
                     ty: None,
                     name: None,
                 }),
+                map(parse_type, |ty| Argument {
+                    ty: Some(ty),
+                    name: None
+                })
             )),
         ),
     )(i)
