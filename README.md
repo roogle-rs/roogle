@@ -6,7 +6,7 @@ Current available features are listed below.
 
 ### Available Queries
 - [x] Function queries
-- [ ] Method queries
+- [x] Method queries
 
 ### Available Types to query
 - [x] Primitive types
