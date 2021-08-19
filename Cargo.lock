@@ -345,7 +345,7 @@ version = "0.1.1"
 dependencies = [
  "nom",
  "roogle-engine",
- "roogle-index",
+ "rustdoc-types",
  "rustyline",
  "serde",
  "serde_json",
@@ -357,14 +357,16 @@ name = "roogle-engine"
 version = "0.1.1"
 dependencies = [
  "nom",
- "roogle-index",
+ "rustdoc-types",
  "serde",
  "serde_json",
 ]
 
 [[package]]
-name = "roogle-index"
-version = "0.1.0"
+name = "rustdoc-types"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8aaf4e0716f5da59139c521029552bae27ef6d4ef49732a64b4d08b95e6cb1e"
 dependencies = [
  "serde",
 ]

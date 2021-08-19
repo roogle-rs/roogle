@@ -17,6 +17,6 @@ Current available features are listed below.
 ## Example (REPL)
 ```sh
 $ cargo build --release
-$ cargo run --release --quiet -- --index assets/index/answer_of_everything.json
-> fn (..) -> usize
+$ cargo run --release --quiet -- --index assets/index/std.json
+> fn align_of(..) -> usize
 ```

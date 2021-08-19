@@ -1,46 +1,36 @@
 use std::collections::HashMap;
-use std::rc::Rc;
 
-use roogle_index::types as index;
+use rustdoc_types::*;
 
 use crate::approx::Approximate;
 use crate::types::Query;
 
 pub struct QueryExecutor {
-    krate: String,
-    index: index::Index,
+    krate: Crate,
 }
 
 impl QueryExecutor {
-    pub fn new(krate: impl ToString, index: index::Index) -> Self {
-        Self {
-            krate: krate.to_string(),
-            index,
-        }
+    pub fn new(krate: Crate) -> Self {
+        Self { krate }
     }
 
-    pub fn exec(&self, query: &Query) -> Vec<Rc<index::IndexItem>> {
-        if let Some(krate) = self.index.crates.get(&self.krate) {
-            let mut items_with_sims = Vec::new();
-            for item in &krate.items {
-                use index::ItemKind::*;
-                match &*item.kind {
-                    FunctionItem(function) => items_with_sims.push((
-                        item,
-                        query.approx(&item, &index::Generics::new(), &mut HashMap::new()),
-                    )),
-                    _ => (),
-                }
+    pub fn exec(&self, query: Query) -> Vec<&Item> {
+        let mut items_with_sims = Vec::new();
+        for item in self.krate.index.values() {
+            match item.inner {
+                ItemEnum::Function(_) => items_with_sims.push((
+                    &item.id,
+                    query.approx(item, &Generics::default(), &mut HashMap::new()),
+                )),
+                _ => (),
             }
-            items_with_sims.sort_by(|a, b| a.1.cmp(&b.1));
-
-            items_with_sims
-                .into_iter()
-                .map(|(item, _)| item)
-                .map(|item| Rc::clone(&item))
-                .collect()
-        } else {
-            Vec::new()
         }
+        items_with_sims.sort_by(|(_, a), (_, b)| a.cmp(b));
+
+        items_with_sims
+            .into_iter()
+            .map(|(id, _)| id)
+            .map(|id| self.krate.index.get(id).unwrap())
+            .collect()
     }
 }
