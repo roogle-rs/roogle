@@ -8,6 +8,8 @@ repository = "https://github.com/hkmatsumoto/roogle"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+log = "0.4"
+log-derive = "0.4"
 nom = "6.2"
 rustdoc-types = "0.3.0"
 serde = { version = "1.0", features = ["derive"] }

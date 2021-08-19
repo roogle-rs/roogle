@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use log::{info, trace};
+use log_derive::logfn;
 use rustdoc_types as types;
 
 use crate::types::*;
@@ -23,12 +25,16 @@ pub enum Similarity {
 use Similarity::*;
 
 impl Approximate<types::Item> for Query {
+    #[logfn(info, fmt = "Approximating `Query` to `Item` finished: {:?}")]
     fn approx(
         &self,
         item: &types::Item,
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("Approximating `Query` to `Item`");
+        trace!("approx(lhs={:?}, rhs={:?})", self, item);
+
         let mut sims = Vec::new();
 
         if let Some(ref name) = self.name {
@@ -42,17 +48,22 @@ impl Approximate<types::Item> for Query {
             sims.append(&mut kind.approx(&item.inner, generics, substs))
         }
 
+        trace!("sims: {:?}", sims);
         sims
     }
 }
 
 impl Approximate<String> for Symbol {
+    #[logfn(info, fmt = "Approximating `Symbol` to `String` finished: {:?}")]
     fn approx(
         &self,
         string: &String,
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("Approximating `Symbol` to `String`");
+        trace!("approx(lhs: {:?}, rhs: {:?})", self, string);
+
         if self == string {
             vec![Equivalent]
         } else {
@@ -62,12 +73,16 @@ impl Approximate<String> for Symbol {
 }
 
 impl Approximate<types::ItemEnum> for QueryKind {
+    #[logfn(info, fmt = "Approximating `QueryKind` to `ItemEnum` finished: {:?}")]
     fn approx(
         &self,
         kind: &types::ItemEnum,
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("Approximating `QueryKind` to `ItemEnum`");
+        trace!("approx(lhs: {:?}, rhs: {:?})", self, kind);
+
         use types::ItemEnum::*;
         use QueryKind::*;
         match (self, kind) {
@@ -78,24 +93,32 @@ impl Approximate<types::ItemEnum> for QueryKind {
 }
 
 impl Approximate<types::Function> for Function {
+    #[logfn(info, fmt = "Approximating `Function` to `Function` finished: {:?}")]
     fn approx(
         &self,
         function: &types::Function,
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("Approximating `Function` to `Function`");
+        trace!("approx(lhs: {:?}, rhs: {:?})", self, function);
+
         // update `generics` using `function.generics`
         self.decl.approx(&function.decl, generics, substs)
     }
 }
 
 impl Approximate<types::FnDecl> for FnDecl {
+    #[logfn(info, fmt = "Approximating `FnDecl` to `FnDecl` finished: {:?}")]
     fn approx(
         &self,
         decl: &types::FnDecl,
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("Approximating `FnDecl` to `FnDecl`");
+        trace!("approx(lhs: {:?}, rhs: {:?})", self, decl);
+
         let mut sims = Vec::new();
 
         if let Some(ref inputs) = self.inputs {
@@ -117,12 +140,19 @@ impl Approximate<types::FnDecl> for FnDecl {
 }
 
 impl Approximate<(String, types::Type)> for Argument {
+    #[logfn(
+        info,
+        fmt = "Approximating `Argument` to `(String, Type)` finished: {:?}"
+    )]
     fn approx(
         &self,
         arg: &(String, types::Type),
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("Approximating `Argument` to `(String, Type)`");
+        trace!("approx(lhs: {:?}, rhs: {:?})", self, arg);
+
         let mut sims = Vec::new();
 
         if let Some(ref type_) = self.ty {
@@ -138,12 +168,16 @@ impl Approximate<(String, types::Type)> for Argument {
 }
 
 impl Approximate<Option<types::Type>> for FnRetTy {
+    #[logfn(info, fmt = "Approximating `FnRetTy` to `Option<Type>` finished: {:?}")]
     fn approx(
         &self,
         ret_ty: &Option<types::Type>,
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("Approximating `FnRetTy` to `Option<Type>`");
+        trace!("approx(lhs: {:?}, rhs: {:?})", self, ret_ty);
+
         match (self, ret_ty) {
             (FnRetTy::Return(q), Some(i)) => q.approx(i, generics, substs),
             (FnRetTy::DefaultReturn, None) => vec![Equivalent],
@@ -153,12 +187,22 @@ impl Approximate<Option<types::Type>> for FnRetTy {
 }
 
 impl Approximate<types::Type> for Type {
+    #[logfn(info, fmt = "Approximating `Type` to `Type` finished: {:?}")]
     fn approx(
         &self,
         type_: &types::Type,
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("Approximating `Type` to `Type`");
+        trace!(
+            "approx(lhs: {:?}, rhs: {:?}, generics: {:?}, substs: {:?})",
+            self,
+            type_,
+            generics,
+            substs
+        );
+
         use Type::*;
         match (self, type_) {
             (Primitive(q), types::Type::Primitive(i)) => q.approx(i, generics, substs),
@@ -169,12 +213,19 @@ impl Approximate<types::Type> for Type {
 }
 
 impl Approximate<String> for PrimitiveType {
+    #[logfn(
+        info,
+        fmt = "Approximating `PrimitiveType` to `PrimitiveType` finished: {:?}"
+    )]
     fn approx(
         &self,
         prim_ty: &String,
         generics: &types::Generics,
         substs: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
+        info!("Approximating `PrimitiveType` to `String`");
+        trace!("approx(lhs: {:?}, rhs: {:?})", self, prim_ty);
+
         if self.as_str() == prim_ty {
             vec![Equivalent]
         } else {

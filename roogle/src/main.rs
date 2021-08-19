@@ -1,12 +1,14 @@
 use core::panic;
 use std::path::{Path, PathBuf};
 
+use env_logger as logger;
 use nom::error::ErrorKind;
-use roogle_engine::{exec::QueryExecutor, parse::parse_query};
 use rustdoc_types::Crate;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use structopt::StructOpt;
+
+use roogle_engine::{exec::QueryExecutor, parse::parse_query};
 
 #[derive(StructOpt, Debug)]
 struct Config {
@@ -22,6 +24,8 @@ fn read_json(path: impl AsRef<Path>) -> String {
 }
 
 fn main() {
+    logger::init();
+
     let cfg = Config::from_args();
     let krate = serde_json::from_str::<Crate>(&read_json(cfg.index))
         .expect("msfailed in deserializing crate");
@@ -40,7 +44,7 @@ fn main() {
                     .expect("failed in parsing query")
                     .1;
                 let items = qe.exec(query);
-                dbg!(items.iter().take(3).collect::<Vec<_>>());
+                println!("{:?}", items.get(0));
             }
             Err(ReadlineError::Interrupted) => break,
             _ => panic!("exitted repl"),

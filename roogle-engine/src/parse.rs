@@ -1,3 +1,4 @@
+use log_derive::logfn;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -14,9 +15,10 @@ use crate::types::{Argument, FnDecl, FnRetTy, Function, PrimitiveType, Query, Qu
 
 type Symbol = String;
 
+#[logfn(info, fmt = "Parsing query finished: {:?}")]
 pub fn parse_query<'a, E>(i: &'a str) -> IResult<&'a str, Query, E>
 where
-    E: ParseError<&'a str> + ContextError<&'a str>,
+    E: ParseError<&'a str> + ContextError<&'a str> + std::fmt::Debug,
 {
     parse_function_query(i)
 }

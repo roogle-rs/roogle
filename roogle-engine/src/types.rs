@@ -42,14 +42,14 @@ pub enum FnRetTy {
 pub type Symbol = String;
 
 #[non_exhaustive]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Type {
     Primitive(PrimitiveType),
 }
 
 /// N.B. this has to be different from `hir::PrimTy` because it also includes types that aren't
 /// paths, like `Unit`.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum PrimitiveType {
     Isize,
     I8,

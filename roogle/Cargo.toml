@@ -9,6 +9,7 @@ repository = "https://github.com/hkmatsumoto/roogle"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+env_logger = "0.9"
 nom = "6.2"
 roogle-engine = { version = "0.1.1", path = "../roogle-engine" }
 rustdoc-types = "0.3.0"
