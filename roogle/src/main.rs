@@ -29,7 +29,6 @@ fn main() {
     let cfg = Config::from_args();
     let krate = serde_json::from_str::<Crate>(&read_json(cfg.index))
         .expect("msfailed in deserializing crate");
-    dbg!(krate.index.len());
 
     let qe = QueryExecutor::new(krate);
 
@@ -44,7 +43,9 @@ fn main() {
                     .expect("failed in parsing query")
                     .1;
                 let items = qe.exec(query);
-                println!("{:?}", items.get(0));
+                for item in items.iter().take(3) {
+                    println!("{:?}", item);
+                }
             }
             Err(ReadlineError::Interrupted) => break,
             _ => panic!("exitted repl"),
