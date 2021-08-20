@@ -130,7 +130,20 @@ fn parse_type<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
 where
     E: ParseError<&'a str> + ContextError<&'a str>,
 {
-    preceded(multispace0, map(parse_primitive_type, Type::Primitive))(i)
+    preceded(
+        multispace0,
+        alt((
+            map(parse_primitive_type, Type::Primitive),
+            map(parse_unrsolved_path, |name| Type::UnresolvedPath { name }),
+        )),
+    )(i)
+}
+
+fn parse_unrsolved_path<'a, E>(i: &'a str) -> IResult<&'a str, String, E>
+where
+    E: ParseError<&'a str> + ContextError<&'a str>,
+{
+    parse_symbol(i)
 }
 
 fn parse_primitive_type<'a, E>(i: &'a str) -> IResult<&'a str, PrimitiveType, E>

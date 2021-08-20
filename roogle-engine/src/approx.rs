@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use log::{info, trace};
+use log::{info, trace, debug};
 use log_derive::logfn;
 use rustdoc_types as types;
 
@@ -257,9 +257,14 @@ impl Approximate<types::Type> for Type {
                 }
             }
             (q, types::Type::BorrowedRef { type_: i, .. }) => q.approx(i, generics, substs),
+            (UnresolvedPath { name: q }, types::Type::ResolvedPath { name: i, .. }) => {
+                q.approx(i, generics, substs)
+            }
             (Primitive(q), types::Type::Primitive(i)) => q.approx(i, generics, substs),
-            (Primitive(_), _) => vec![Different],
-            _ => unimplemented!(),
+            (q, i) => {
+                debug!("Potentially unimplemented approximation: approx(lhs: {:?}, rhs: {:?})", q, i);
+                vec![Different]
+            }
         }
     }
 }

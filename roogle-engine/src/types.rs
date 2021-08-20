@@ -44,6 +44,8 @@ pub type Symbol = String;
 #[non_exhaustive]
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Type {
+    // FIXME: Give `UnresolvedPath` a better name.
+    UnresolvedPath { name: Symbol },
     Primitive(PrimitiveType),
 }
 
