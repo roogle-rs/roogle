@@ -11,7 +11,7 @@ use nom::{
     IResult,
 };
 
-use crate::types::{Argument, FnDecl, FnRetTy, Function, PrimitiveType, Query, QueryKind, Type};
+use crate::types::*;
 
 type Symbol = String;
 
@@ -134,16 +134,42 @@ where
         multispace0,
         alt((
             map(parse_primitive_type, Type::Primitive),
-            map(parse_unrsolved_path, |name| Type::UnresolvedPath { name }),
+            parse_unrsolved_path,
         )),
     )(i)
 }
 
-fn parse_unrsolved_path<'a, E>(i: &'a str) -> IResult<&'a str, String, E>
+fn parse_unrsolved_path<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
 where
     E: ParseError<&'a str> + ContextError<&'a str>,
 {
-    parse_symbol(i)
+    let (i, name) = parse_symbol(i)?;
+    let (i, args) = opt(parse_generic_args)(i)?;
+
+    Ok((
+        i,
+        Type::UnresolvedPath {
+            name,
+            args: args.map(Box::new),
+        },
+    ))
+}
+
+fn parse_generic_args<'a, E>(i: &'a str) -> IResult<&'a str, GenericArgs, E>
+where
+    E: ParseError<&'a str> + ContextError<&'a str>,
+{
+    map(
+        delimited(
+            char('<'),
+            separated_list0(
+                char(','),
+                preceded(multispace0, map(parse_type, GenericArg::Type)),
+            ),
+            char('>'),
+        ),
+        |args| GenericArgs::AngleBracketed { args },
+    )(i)
 }
 
 fn parse_primitive_type<'a, E>(i: &'a str) -> IResult<&'a str, PrimitiveType, E>

@@ -1,39 +1,55 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Query {
     pub name: Option<Symbol>,
     pub kind: Option<QueryKind>,
 }
 
 #[non_exhaustive]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum QueryKind {
     FunctionQuery(Function),
 }
 
 #[non_exhaustive]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Function {
     pub decl: FnDecl,
     // pub generics: Generics,
 }
 
 #[non_exhaustive]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum GenericArgs {
+    AngleBracketed {
+        args: Vec<GenericArg>, /* bindings: Vec<TypeBinding> */
+    },
+    // Parenthesized { inputs: Vec<Type>, output: Option<Type> },
+}
+
+#[non_exhaustive]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum GenericArg {
+    // Lifetime(String),
+    Type(Type),
+    // Const(Constant),
+}
+#[non_exhaustive]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FnDecl {
     pub inputs: Option<Vec<Argument>>,
     pub output: Option<FnRetTy>,
     // pub c_variadic: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Argument {
     pub ty: Option<Type>,
     pub name: Option<Symbol>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum FnRetTy {
     Return(Type),
     DefaultReturn,
@@ -45,7 +61,10 @@ pub type Symbol = String;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Type {
     // FIXME: Give `UnresolvedPath` a better name.
-    UnresolvedPath { name: Symbol },
+    UnresolvedPath {
+        name: Symbol,
+        args: Option<Box<GenericArgs>>,
+    },
     Primitive(PrimitiveType),
 }
 

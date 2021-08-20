@@ -14,9 +14,9 @@ Current available features are listed below.
   - [x] Without bounds and where predicates (e.g., `<T>`)
   - [ ] With bounds (e.g., `<T: Copy>`)
   - [ ] With where predicates
-- [ ] Custom types
+- [x] Custom types
   - [x] Without generic args (e.g., `IpAddr`)
-  - [ ] With generic args (e.g., `Vec<T>`, `Option<T>`)
+  - [x] With generic args (e.g., `Vec<T>`, `Option<T>`)
 - [ ] Other types
 
 ## Example (REPL)
