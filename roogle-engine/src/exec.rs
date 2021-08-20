@@ -50,8 +50,7 @@ impl QueryExecutor {
 
         items_with_sims
             .into_iter()
-            .map(|(id, _)| id)
-            .map(|id| self.krate.index.get(id).unwrap())
+            .map(|(id, _)| self.krate.index.get(id).unwrap())
             .collect()
     }
 }
