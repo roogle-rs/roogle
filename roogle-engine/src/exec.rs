@@ -23,6 +23,7 @@ impl QueryExecutor {
 
                     if sims.iter().any(|sim| sim != &Similarity::Different) {
                         sims.sort();
+                        sims.reverse();
                         items_with_sims.push((&item.id, sims))
                     }
                 }
@@ -39,6 +40,7 @@ impl QueryExecutor {
 
                         if sims.iter().any(|sim| sim != &Similarity::Different) {
                             sims.sort();
+                            sims.reverse();
                             items_with_sims.push((&item.id, sims))
                         }
                     }
@@ -46,7 +48,7 @@ impl QueryExecutor {
                 _ => (),
             }
         }
-        items_with_sims.sort_by(|(_, a), (_, b)| a.cmp(b));
+        items_with_sims.sort_by(|(_, b), (_, a)| a.cmp(b));
 
         items_with_sims
             .into_iter()

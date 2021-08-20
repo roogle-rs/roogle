@@ -4,7 +4,7 @@ use nom::{
     bytes::complete::tag,
     character::complete::char,
     character::complete::{alpha1, alphanumeric1, multispace0, multispace1},
-    combinator::{eof, map, opt, recognize},
+    combinator::{eof, map, not, opt, recognize, value},
     error::{ContextError, ParseError},
     multi::{many0, separated_list0},
     sequence::{delimited, pair, preceded},
@@ -68,7 +68,11 @@ where
 {
     let (i, inputs) = delimited(
         char('('),
-        alt((map(tag(".."), |_| None), opt(parse_arguments))),
+        alt((
+            map(tag(".."), |_| None),
+            opt(parse_arguments),
+            value(Some(Vec::new()), not(eof)),
+        )),
         char(')'),
     )(i)?;
     let (i, output) = opt(parse_output)(i)?;

@@ -17,9 +17,9 @@ pub trait Approximate<Destination> {
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Similarity {
-    Equivalent,
-    Subequal,
     Different,
+    Subequal,
+    Equivalent,
 }
 
 use Similarity::*;
