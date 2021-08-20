@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use log::{info, trace, debug};
+use log::{debug, info, trace};
 use log_derive::logfn;
 use rustdoc_types as types;
 
@@ -59,8 +59,8 @@ impl Approximate<String> for Symbol {
     fn approx(
         &self,
         string: &String,
-        generics: &types::Generics,
-        substs: &mut HashMap<String, Type>,
+        _: &types::Generics,
+        _: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
         info!("Approximating `Symbol` to `String`");
         trace!("approx(lhs: {:?}, rhs: {:?})", self, string);
@@ -262,7 +262,10 @@ impl Approximate<types::Type> for Type {
             }
             (Primitive(q), types::Type::Primitive(i)) => q.approx(i, generics, substs),
             (q, i) => {
-                debug!("Potentially unimplemented approximation: approx(lhs: {:?}, rhs: {:?})", q, i);
+                debug!(
+                    "Potentially unimplemented approximation: approx(lhs: {:?}, rhs: {:?})",
+                    q, i
+                );
                 vec![Different]
             }
         }
@@ -277,8 +280,8 @@ impl Approximate<String> for PrimitiveType {
     fn approx(
         &self,
         prim_ty: &String,
-        generics: &types::Generics,
-        substs: &mut HashMap<String, Type>,
+        _: &types::Generics,
+        _: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
         info!("Approximating `PrimitiveType` to `String`");
         trace!("approx(lhs: {:?}, rhs: {:?})", self, prim_ty);
