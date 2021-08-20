@@ -22,6 +22,9 @@ Current available features are listed below.
 ## Example (REPL)
 ```sh
 $ cargo build --release
-$ cargo run --release --quiet -- --index assets/index/alloc.json
-> fn (Vec) -> usize
+$ cargo run --release --quiet -- --index assets/index/core.json
+> fn (Option<T>) -> bool
+> fn (Option<Option<T>>) -> Option<T>
+> fn (Option<T>, Option<T>) -> Option<T>
+> fn (Option<Result<T, E>>) -> Result<Option<T>, E>
 ```

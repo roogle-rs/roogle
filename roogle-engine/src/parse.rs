@@ -197,5 +197,6 @@ where
         map(tag("f64"), |_| PrimitiveType::F64),
         map(tag("char"), |_| PrimitiveType::Char),
         map(tag("bool"), |_| PrimitiveType::Bool),
+        map(tag("str"), |_| PrimitiveType::Str),
     ))(i)
 }

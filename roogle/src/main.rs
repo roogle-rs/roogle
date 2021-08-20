@@ -44,7 +44,7 @@ fn main() {
                     .1;
                 let items = qe.exec(query);
                 for item in items.iter().take(3) {
-                    println!("{:?}", item);
+                    println!("{:?}", item.name);
                 }
             }
             Err(ReadlineError::Interrupted) => break,
