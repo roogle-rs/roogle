@@ -19,11 +19,8 @@ impl QueryExecutor {
         for item in self.krate.index.values() {
             match item.inner {
                 ItemEnum::Function(_) => {
-                    let mut sims = query.approx(item, &Generics::default(), &mut HashMap::new());
-
+                    let sims = query.approx(item, &Generics::default(), &mut HashMap::new());
                     if sims.iter().any(|sim| sim != &Similarity::Different) {
-                        sims.sort();
-                        sims.reverse();
                         items_with_sims.push((&item.id, sims))
                     }
                 }
@@ -36,11 +33,8 @@ impl QueryExecutor {
 
                     for item in &impl_.items {
                         let item = self.krate.index.get(item).unwrap();
-                        let mut sims = query.approx(item, &generics, &mut HashMap::new());
-
+                        let sims = query.approx(item, &generics, &mut HashMap::new());
                         if sims.iter().any(|sim| sim != &Similarity::Different) {
-                            sims.sort();
-                            sims.reverse();
                             items_with_sims.push((&item.id, sims))
                         }
                     }
@@ -48,11 +42,24 @@ impl QueryExecutor {
                 _ => (),
             }
         }
-        items_with_sims.sort_by(|(_, b), (_, a)| a.cmp(b));
+        items_with_sims.sort_by_key(|(_, sims)| score(sims));
 
         items_with_sims
             .into_iter()
+            .rev()
             .map(|(id, _)| self.krate.index.get(id).unwrap())
             .collect()
     }
+}
+
+fn score(sims: &Vec<Similarity>) -> usize {
+    sims.iter()
+        .map(|sim| match sim {
+            Similarity::Different => 0,
+            Similarity::Subequal => 1,
+            Similarity::Equivalent => 2,
+        })
+        .sum::<usize>()
+        * 100
+        / (2 * sims.len())
 }
