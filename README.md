@@ -8,7 +8,7 @@ Current available features are listed below.
 - [x] Function queries
 - [x] Method queries
 
-### Available Types to query
+### Available Types to Query
 - [x] Primitive types
 - [ ] Generic types
   - [x] Without bounds and where predicates (e.g., `<T>`)
