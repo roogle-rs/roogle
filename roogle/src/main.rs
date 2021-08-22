@@ -2,7 +2,6 @@ use core::panic;
 use std::path::{Path, PathBuf};
 
 use env_logger as logger;
-use nom::error::ErrorKind;
 use rustdoc_types::Crate;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -39,9 +38,7 @@ fn main() {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
 
-                let query = parse_query::<(&str, ErrorKind)>(&line)
-                    .expect("failed in parsing query")
-                    .1;
+                let query = parse_query(&line).expect("failed in parsing query").1;
                 let items = qe.exec(query);
                 for item in items.iter().take(3) {
                     println!("{:?}", item.name);

@@ -16,10 +16,7 @@ use crate::types::*;
 type Symbol = String;
 
 #[logfn(info, fmt = "Parsing query finished: {:?}")]
-pub fn parse_query<'a, E>(i: &'a str) -> IResult<&'a str, Query, E>
-where
-    E: ParseError<&'a str> + ContextError<&'a str> + std::fmt::Debug,
-{
+pub fn parse_query<'a>(i: &'a str) -> IResult<&'a str, Query> {
     parse_function_query(i)
 }
 
