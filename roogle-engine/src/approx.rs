@@ -271,27 +271,26 @@ impl Approximate<types::Type> for Type {
                 let mut sims = q.approx(i, generics, substs);
                 if sims == vec![Equivalent] {
                     match (q_args, i_args) {
-                        (Some(q), Some(i)) => match **i {
-                            types::GenericArgs::AngleBracketed { args: ref i, .. } => {
-                                let GenericArgs::AngleBracketed { args: ref q } = **q;
-                                for (i, q) in i
-                                    .iter()
-                                    .filter_map(|i| match i {
-                                        types::GenericArg::Type(i) => Some(i),
-                                        _ => None,
-                                    })
-                                    .zip(q.iter().map(|q| match q {
-                                        GenericArg::Type(q) => q,
-                                    }))
-                                {
-                                    sims.append(&mut q.approx(i, generics, substs));
+                        (Some(q), Some(i)) => match (&**q, &**i) {
+                            (
+                                GenericArgs::AngleBracketed { args: q },
+                                types::GenericArgs::AngleBracketed { args: i, .. },
+                            ) => {
+                                let q = q.iter().map(|q| match q {
+                                    GenericArg::Type(q) => q,
+                                });
+                                let i = i.iter().filter_map(|i| match i {
+                                    types::GenericArg::Type(t) => Some(t),
+                                    _ => None,
+                                });
+                                for (q, i) in q.zip(i) {
+                                    sims.append(&mut q.approx(i, generics, substs))
                                 }
                             }
-                            types::GenericArgs::Parenthesized { .. } => {}
+                            _ => {}
                         },
                         (Some(_), None) => sims.push(Different),
-                        (None, Some(_)) => {}
-                        (None, None) => {}
+                        (None, _) => {}
                     }
                 }
                 sims
