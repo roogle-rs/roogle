@@ -52,7 +52,7 @@ impl QueryExecutor {
     }
 }
 
-fn score(sims: &Vec<Similarity>) -> usize {
+fn score(sims: &[Similarity]) -> usize {
     sims.iter()
         .map(|sim| match sim {
             Similarity::Different => 0,

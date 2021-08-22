@@ -271,11 +271,12 @@ impl Approximate<types::Type> for Type {
                 let mut sims = q.approx(i, generics, substs);
                 if sims == vec![Equivalent] {
                     match (q_args, i_args) {
-                        (Some(q), Some(i)) => match (&**q, &**i) {
-                            (
+                        (Some(q), Some(i)) => {
+                            if let (
                                 GenericArgs::AngleBracketed { args: q },
                                 types::GenericArgs::AngleBracketed { args: i, .. },
-                            ) => {
+                            ) = (&**q, &**i)
+                            {
                                 let q = q.iter().map(|q| match q {
                                     GenericArg::Type(q) => q,
                                 });
@@ -287,8 +288,7 @@ impl Approximate<types::Type> for Type {
                                     sims.append(&mut q.approx(i, generics, substs))
                                 }
                             }
-                            _ => {}
-                        },
+                        }
                         (Some(_), None) => sims.push(Different),
                         (None, _) => {}
                     }
