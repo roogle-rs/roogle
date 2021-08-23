@@ -44,7 +44,7 @@ fn main() {
                     println!("{:?}", item.name);
                 }
             }
-            Err(ReadlineError::Interrupted) => break,
+            Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
             _ => panic!("exitted repl"),
         }
     }
