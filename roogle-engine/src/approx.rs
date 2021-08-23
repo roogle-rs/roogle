@@ -15,6 +15,25 @@ pub trait Approximate<Destination> {
     ) -> Vec<Similarity>;
 }
 
+trait GenericsExt {
+    fn compose(&self, other: &types::Generics) -> types::Generics;
+}
+
+impl GenericsExt for types::Generics {
+    fn compose(&self, other: &types::Generics) -> types::Generics {
+        let mut params = self.params.clone();
+        params.append(&mut other.params.clone());
+
+        let mut where_predicates = self.where_predicates.clone();
+        where_predicates.append(&mut other.where_predicates.clone());
+
+        types::Generics {
+            params,
+            where_predicates,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Similarity {
     Different,
@@ -105,8 +124,8 @@ impl Approximate<types::Function> for Function {
         info!("Approximating `Function` to `Function`");
         trace!("approx(lhs: {:?}, rhs: {:?})", self, function);
 
-        // update `generics` using `function.generics`
-        self.decl.approx(&function.decl, generics, substs)
+        let generics = generics.compose(&function.generics);
+        self.decl.approx(&function.decl, &generics, substs)
     }
 }
 
@@ -126,7 +145,8 @@ impl Approximate<types::Method> for Function {
             generics
         );
 
-        self.decl.approx(&method.decl, generics, substs)
+        let generics = generics.compose(&method.generics);
+        self.decl.approx(&method.decl, &generics, substs)
     }
 }
 

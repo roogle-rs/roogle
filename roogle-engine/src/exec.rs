@@ -25,7 +25,7 @@ impl QueryExecutor {
                     }
                 }
                 ItemEnum::Impl(ref impl_) => {
-                    let mut generics = Generics::default();
+                    let mut generics = impl_.generics.clone();
                     generics.where_predicates.push(WherePredicate::EqPredicate {
                         lhs: Type::Generic("Self".to_owned()),
                         rhs: impl_.for_.clone(),
