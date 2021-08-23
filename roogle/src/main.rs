@@ -27,7 +27,7 @@ fn main() {
 
     let cfg = Config::from_args();
     let krate = serde_json::from_str::<Crate>(&read_json(cfg.index))
-        .expect("msfailed in deserializing crate");
+        .expect("failed in deserializing crate");
 
     let qe = QueryExecutor::new(krate);
 
