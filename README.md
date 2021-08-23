@@ -19,6 +19,11 @@ Current available features are listed below.
   - [x] With generic args (e.g., `Vec<T>`, `Option<T>`)
 - [ ] Other types
 
+## Example
+[Online hands-on](https://roogle.hkmatsumoto.com)
+
+Note that onlines hands-on is much slower than the repl example below. You may need to wait 10 seconds to get a query completed.
+
 ## Example (REPL)
 ```sh
 $ cargo build --release
