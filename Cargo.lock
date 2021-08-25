@@ -459,7 +459,7 @@ dependencies = [
 
 [[package]]
 name = "roogle-engine"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "log",
  "log-derive",
