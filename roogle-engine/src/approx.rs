@@ -181,6 +181,7 @@ impl Approximate<types::FnDecl> for FnDecl {
                     None => sims.push(Different),
                 });
 
+            // NOTE(hkmatsumoto): Do we actually need to do the same thing when `inputs.len() > decl.inputs.len()`?
             if decl.inputs.len() > inputs.len() {
                 let extra = decl.inputs.len() - inputs.len();
                 sims.append(&mut vec![Different; extra])
@@ -285,6 +286,22 @@ impl Approximate<types::Type> for Type {
                     }
                 }
             }
+            (Tuple(q), types::Type::Tuple(i)) => {
+                let mut sims: Vec<_> = q
+                    .iter()
+                    .zip(i.iter())
+                    .map(|(q, i)| q.approx(i, generics, substs))
+                    .flatten()
+                    .collect();
+
+                // NOTE(hkmatsumoto): Do we actually need to do the same thing when `q.len() > i.len()`?
+                if i.len() > q.len() {
+                    sims.append(&mut vec![Different; i.len() - q.len()]);
+                }
+                sims
+            }
+            (Slice(q), types::Type::Slice(i)) => q.approx(i, generics, substs),
+            (Never, types::Type::Never) => vec![Equivalent],
             (
                 RawPointer {
                     mutable: q_mut,

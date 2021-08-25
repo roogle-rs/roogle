@@ -66,6 +66,9 @@ pub enum Type {
         args: Option<Box<GenericArgs>>,
     },
     Primitive(PrimitiveType),
+    Tuple(Vec<Type>),
+    Slice(Box<Type>),
+    Never,
     RawPointer {
         mutable: bool,
         type_: Box<Type>,

@@ -136,10 +136,36 @@ where
         alt((
             map(parse_primitive_type, Type::Primitive),
             parse_unresolved_path,
+            parse_tuple,
+            parse_slice,
+            value(Type::Never, char('!')),
             parse_raw_pointer,
             parse_borrowed_ref,
         )),
     )(i)
+}
+
+fn parse_tuple<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
+where
+    E: ParseError<&'a str> + ContextError<&'a str>,
+{
+    map(
+        delimited(
+            char('('),
+            separated_list0(char(','), preceded(multispace0, parse_type)),
+            char(')'),
+        ),
+        Type::Tuple,
+    )(i)
+}
+
+fn parse_slice<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
+where
+    E: ParseError<&'a str> + ContextError<&'a str>,
+{
+    map(delimited(char('['), parse_type, char(']')), |ty| {
+        Type::Slice(Box::new(ty))
+    })(i)
 }
 
 fn parse_raw_pointer<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
