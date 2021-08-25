@@ -43,6 +43,15 @@ pub enum Similarity {
 
 use Similarity::*;
 
+impl Similarity {
+    fn degrade(&self) -> Similarity {
+        match self {
+            Equivalent | Subequal => Subequal,
+            Different => Different,
+        }
+    }
+}
+
 impl Approximate<types::Item> for Query {
     #[logfn(info, fmt = "Approximating `Query` to `Item` finished: {:?}")]
     fn approx(
@@ -276,7 +285,31 @@ impl Approximate<types::Type> for Type {
                     }
                 }
             }
-            (q, types::Type::BorrowedRef { type_: i, .. }) => q.approx(i, generics, substs),
+            (
+                BorrowedRef {
+                    mutable: q_mut,
+                    type_: q,
+                },
+                types::Type::BorrowedRef {
+                    mutable: i_mut,
+                    type_: i,
+                    ..
+                },
+            ) => {
+                if q_mut == i_mut {
+                    q.approx(i, generics, substs)
+                } else {
+                    q.approx(i, generics, substs)
+                        .iter()
+                        .map(|sim| sim.degrade())
+                        .collect()
+                }
+            }
+            (q, types::Type::BorrowedRef { type_: i, .. }) => q
+                .approx(i, generics, substs)
+                .iter()
+                .map(|sim| sim.degrade())
+                .collect(),
             (
                 UnresolvedPath {
                     name: q,

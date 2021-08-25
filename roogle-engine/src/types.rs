@@ -66,6 +66,10 @@ pub enum Type {
         args: Option<Box<GenericArgs>>,
     },
     Primitive(PrimitiveType),
+    BorrowedRef {
+        mutable: bool,
+        type_: Box<Type>,
+    },
 }
 
 /// N.B. this has to be different from `hir::PrimTy` because it also includes types that aren't

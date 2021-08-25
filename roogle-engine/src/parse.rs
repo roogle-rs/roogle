@@ -134,10 +134,27 @@ where
     preceded(
         multispace0,
         alt((
+            parse_borrowed_ref,
             map(parse_primitive_type, Type::Primitive),
             parse_unresolved_path,
         )),
     )(i)
+}
+
+fn parse_borrowed_ref<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
+where
+    E: ParseError<&'a str> + ContextError<&'a str>,
+{
+    let (i, mutable) = alt((map(tag("&mut"), |_| true), map(tag("&"), |_| false)))(i)?;
+    let (i, type_) = parse_type(i)?;
+
+    Ok((
+        i,
+        Type::BorrowedRef {
+            mutable,
+            type_: Box::new(type_),
+        },
+    ))
 }
 
 fn parse_unresolved_path<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
