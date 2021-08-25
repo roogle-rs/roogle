@@ -135,12 +135,12 @@ where
         multispace0,
         alt((
             map(parse_primitive_type, Type::Primitive),
-            parse_unrsolved_path,
+            parse_unresolved_path,
         )),
     )(i)
 }
 
-fn parse_unrsolved_path<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
+fn parse_unresolved_path<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
 where
     E: ParseError<&'a str> + ContextError<&'a str>,
 {
