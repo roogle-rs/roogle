@@ -152,7 +152,13 @@ where
     map(
         delimited(
             char('('),
-            separated_list0(char(','), preceded(multispace0, parse_type)),
+            separated_list0(
+                char(','),
+                preceded(
+                    multispace0,
+                    alt((map(tag("_"), |_| None), map(parse_type, Some))),
+                ),
+            ),
             char(')'),
         ),
         Type::Tuple,
@@ -163,9 +169,14 @@ fn parse_slice<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
 where
     E: ParseError<&'a str> + ContextError<&'a str>,
 {
-    map(delimited(char('['), parse_type, char(']')), |ty| {
-        Type::Slice(Box::new(ty))
-    })(i)
+    map(
+        delimited(
+            char('['),
+            alt((map(tag("_"), |_| None), map(parse_type, Some))),
+            char(']'),
+        ),
+        |ty| Type::Slice(ty.map(Box::new)),
+    )(i)
 }
 
 fn parse_raw_pointer<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>

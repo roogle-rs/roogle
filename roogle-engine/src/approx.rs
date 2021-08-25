@@ -290,9 +290,12 @@ impl Approximate<types::Type> for Type {
                 let mut sims: Vec<_> = q
                     .iter()
                     .zip(i.iter())
-                    .map(|(q, i)| q.approx(i, generics, substs))
+                    .filter_map(|(q, i)| q.as_ref().map(|q| q.approx(i, generics, substs)))
                     .flatten()
                     .collect();
+
+                // They are both tuples
+                sims.push(Equivalent);
 
                 // NOTE(hkmatsumoto): Do we actually need to do the same thing when `q.len() > i.len()`?
                 if i.len() > q.len() {
@@ -300,7 +303,15 @@ impl Approximate<types::Type> for Type {
                 }
                 sims
             }
-            (Slice(q), types::Type::Slice(i)) => q.approx(i, generics, substs),
+            (Slice(q), types::Type::Slice(i)) => {
+                // They are both slices
+                let mut sims = vec![Equivalent];
+
+                if let Some(q) = q {
+                    sims.append(&mut q.approx(i, generics, substs))
+                }
+                sims
+            }
             (Never, types::Type::Never) => vec![Equivalent],
             (
                 RawPointer {
