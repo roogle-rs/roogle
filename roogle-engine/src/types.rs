@@ -66,6 +66,10 @@ pub enum Type {
         args: Option<Box<GenericArgs>>,
     },
     Primitive(PrimitiveType),
+    RawPointer {
+        mutable: bool,
+        type_: Box<Type>,
+    },
     BorrowedRef {
         mutable: bool,
         type_: Box<Type>,

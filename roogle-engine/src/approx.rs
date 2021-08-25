@@ -286,6 +286,25 @@ impl Approximate<types::Type> for Type {
                 }
             }
             (
+                RawPointer {
+                    mutable: q_mut,
+                    type_: q,
+                },
+                types::Type::RawPointer {
+                    mutable: i_mut,
+                    type_: i,
+                },
+            ) => {
+                if q_mut == i_mut {
+                    q.approx(i, generics, substs)
+                } else {
+                    q.approx(i, generics, substs)
+                        .iter()
+                        .map(|sim| sim.degrade())
+                        .collect()
+                }
+            }
+            (
                 BorrowedRef {
                     mutable: q_mut,
                     type_: q,
