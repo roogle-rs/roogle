@@ -77,7 +77,6 @@ impl Approximate<types::Item> for Query {
             sims.append(&mut kind.approx(&item.inner, generics, substs))
         }
 
-        trace!("sims: {:?}", sims);
         sims
     }
 }
