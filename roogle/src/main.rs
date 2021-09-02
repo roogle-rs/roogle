@@ -1,4 +1,5 @@
 use core::panic;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 use env_logger as logger;
@@ -7,7 +8,7 @@ use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use structopt::StructOpt;
 
-use roogle_engine::{exec::QueryExecutor, parse::parse_query};
+use roogle_engine::{exec::QueryExecutor, parse::parse_query, types::Crates};
 
 #[derive(StructOpt, Debug)]
 struct Config {
@@ -26,10 +27,15 @@ fn main() {
     logger::init();
 
     let cfg = Config::from_args();
-    let krate = serde_json::from_str::<Crate>(&read_json(cfg.index))
-        .expect("failed in deserializing crate");
 
-    let qe = QueryExecutor::new(krate);
+    let krates: Vec<Crate> = fs::read_dir(cfg.index)
+        .unwrap()
+        .map(Result::unwrap)
+        .map(|entry| serde_json::from_str(&read_json(entry.path())).unwrap())
+        .collect();
+    let krates = Crates::from(krates);
+
+    let qe = QueryExecutor::new(krates);
 
     let mut rl = Editor::<()>::new();
     loop {

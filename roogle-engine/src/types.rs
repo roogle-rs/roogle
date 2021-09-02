@@ -1,9 +1,92 @@
+use std::collections::HashMap;
+
+use rustdoc_types as types;
+use rustdoc_types::{Id, Item, ItemSummary};
 use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Crates {
+    pub krates: HashMap<String, Crate>,
+    /// Map from a name of a ADT to names of crates containing the ADT which has the name.
+    pub adts: HashMap<String, Vec<String>>,
+}
+
+impl From<Vec<types::Crate>> for Crates {
+    fn from(vec: Vec<types::Crate>) -> Self {
+        let mut krates: HashMap<String, Crate> = HashMap::new();
+        let mut adts: HashMap<String, Vec<String>> = HashMap::new();
+
+        for mut krate in vec {
+            let name = krate
+                .index
+                .remove(&krate.root)
+                .map(|i| i.name.unwrap())
+                .unwrap();
+
+            for ItemSummary { path, .. } in krate.paths.values() {
+                adts.entry(path.last().unwrap().clone())
+                    .or_default()
+                    .push(name.clone());
+            }
+            krates.insert(name, krate.into());
+        }
+
+        Crates { krates, adts }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Crate {
+    pub functions: HashMap<Id, Item>,
+    pub impls: HashMap<Id, Item>,
+    pub methods: HashMap<Id, Item>,
+    pub paths: HashMap<Id, ItemSummary>,
+}
+
+impl From<types::Crate> for Crate {
+    fn from(krate: types::Crate) -> Self {
+        let types::Crate { index, paths, .. } = krate;
+
+        let functions = index
+            .clone()
+            .into_iter()
+            .filter(|(_, i)| matches!(i.inner, types::ItemEnum::Function(_)))
+            .collect();
+        let impls = index
+            .clone()
+            .into_iter()
+            .filter(|(_, i)| matches!(i.inner, types::ItemEnum::Impl(_)))
+            .collect();
+        let methods = index
+            .into_iter()
+            .filter(|(_, i)| matches!(i.inner, types::ItemEnum::Method(_)))
+            .collect();
+
+        Crate {
+            functions,
+            impls,
+            methods,
+            paths,
+        }
+    }
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Query {
     pub name: Option<Symbol>,
     pub kind: Option<QueryKind>,
+}
+
+impl Query {
+    pub fn args(&self) -> Option<Vec<Argument>> {
+        self.kind
+            .as_ref()
+            .map(|kind| {
+                let QueryKind::FunctionQuery(f) = kind;
+                &f.decl
+            })
+            .and_then(|decl| decl.inputs.clone())
+    }
 }
 
 #[non_exhaustive]
@@ -77,6 +160,16 @@ pub enum Type {
         mutable: bool,
         type_: Box<Type>,
     },
+}
+
+impl Type {
+    pub fn inner_type(&self) -> &Self {
+        match self {
+            Type::RawPointer { type_, .. } => type_.inner_type(),
+            Type::BorrowedRef { type_, .. } => type_.inner_type(),
+            _ => self,
+        }
+    }
 }
 
 /// N.B. this has to be different from `hir::PrimTy` because it also includes types that aren't

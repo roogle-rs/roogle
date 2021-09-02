@@ -1,53 +1,98 @@
 use std::collections::HashMap;
 
-use rustdoc_types::*;
+use rustdoc_types as types;
+use rustdoc_types::{Generics, Item, ItemEnum, WherePredicate};
 
 use crate::approx::{Approximate, Similarity};
-use crate::types::Query;
+use crate::types::{Crates, Query, Type};
 
 pub struct QueryExecutor {
-    krate: Crate,
+    krates: Crates,
 }
 
 impl QueryExecutor {
-    pub fn new(krate: Crate) -> Self {
-        Self { krate }
+    pub fn new(krates: Crates) -> Self {
+        Self { krates }
     }
 
     pub fn exec(&self, query: Query) -> Vec<&Item> {
         let mut items_with_sims = Vec::new();
-        for item in self.krate.index.values() {
-            match item.inner {
-                ItemEnum::Function(_) => {
-                    let sims = query.approx(item, &Generics::default(), &mut HashMap::new());
-                    if sims.iter().any(|sim| sim != &Similarity::Different) {
-                        items_with_sims.push((&item.id, sims))
-                    }
+        for krate in self.krates.krates.values() {
+            for function in krate.functions.values() {
+                let sims = query.approx(function, &Generics::default(), &mut HashMap::new());
+                if sims.iter().any(|sim| sim != &Similarity::Different) {
+                    items_with_sims.push((function, sims))
                 }
-                ItemEnum::Impl(ref impl_) => {
-                    let mut generics = impl_.generics.clone();
-                    generics.where_predicates.push(WherePredicate::EqPredicate {
-                        lhs: Type::Generic("Self".to_owned()),
-                        rhs: impl_.for_.clone(),
-                    });
+            }
+        }
 
-                    for item in &impl_.items {
-                        let item = self.krate.index.get(item).unwrap();
-                        let sims = query.approx(item, &generics, &mut HashMap::new());
-                        if sims.iter().any(|sim| sim != &Similarity::Different) {
-                            items_with_sims.push((&item.id, sims))
+        if let Some(name) = query
+            .args()
+            .as_ref()
+            .and_then(|args| args.first())
+            .and_then(|arg| arg.ty.as_ref())
+            .and_then(|ty| {
+                let ty = ty.inner_type();
+                match ty {
+                    Type::UnresolvedPath { name, .. } => Some(name),
+                    _ => None,
+                }
+            })
+        {
+            let krates = self
+                .krates
+                .adts
+                .get(name)
+                .map_or([].iter(), |krates| krates.iter());
+            for krate in krates.filter_map(|krate| self.krates.krates.get(krate)) {
+                for item in krate.impls.values() {
+                    if let ItemEnum::Impl(ref impl_) = item.inner {
+                        let mut generics = impl_.generics.clone();
+                        generics.where_predicates.push(WherePredicate::EqPredicate {
+                            lhs: types::Type::Generic("Self".to_owned()),
+                            rhs: impl_.for_.clone(),
+                        });
+
+                        for item in &impl_.items {
+                            if let Some(item) = krate.methods.get(item) {
+                                let sims = query.approx(item, &generics, &mut HashMap::new());
+                                if sims.iter().any(|sim| sim != &Similarity::Different) {
+                                    items_with_sims.push((item, sims))
+                                }
+                            }
                         }
                     }
                 }
-                _ => (),
+            }
+        } else {
+            for krate in self.krates.krates.values() {
+                for item in krate.impls.values() {
+                    if let ItemEnum::Impl(ref impl_) = item.inner {
+                        let mut generics = impl_.generics.clone();
+                        generics.where_predicates.push(WherePredicate::EqPredicate {
+                            lhs: types::Type::Generic("Self".to_owned()),
+                            rhs: impl_.for_.clone(),
+                        });
+
+                        for item in &impl_.items {
+                            if let Some(item) = krate.methods.get(item) {
+                                let sims = query.approx(item, &generics, &mut HashMap::new());
+                                if sims.iter().any(|sim| sim != &Similarity::Different) {
+                                    items_with_sims.push((item, sims))
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
+
         items_with_sims.sort_by_key(|(_, sims)| score(sims));
 
         items_with_sims
             .into_iter()
             .rev()
-            .map(|(id, _)| self.krate.index.get(id).unwrap())
+            .map(|(id, _)| id)
             .collect()
     }
 }
