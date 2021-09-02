@@ -32,6 +32,5 @@ $ cargo run --release --quiet -- --index assets/
 > fn (Option<Option<T>>) -> Option<T>
 > fn (Option<T>, Option<T>) -> Option<T>
 > fn (Option<Result<T, E>>) -> Result<Option<T>, E>
-$ cargo run --release --quiet -- --index assets/alloc.json
 > fn (&mut Vec<T>, T)
 ```
