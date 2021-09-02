@@ -27,7 +27,7 @@ Note that onlines hands-on is much slower than the repl example below. You may n
 ## Example (REPL)
 ```sh
 $ cargo build --release
-$ cargo run --release --quiet -- --index assets/core.json
+$ cargo run --release --quiet -- --index assets/
 > fn (Option<T>) -> bool
 > fn (Option<Option<T>>) -> Option<T>
 > fn (Option<T>, Option<T>) -> Option<T>
