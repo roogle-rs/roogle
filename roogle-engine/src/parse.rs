@@ -237,7 +237,13 @@ where
             char('<'),
             separated_list0(
                 char(','),
-                preceded(multispace0, map(parse_type, GenericArg::Type)),
+                preceded(
+                    multispace0,
+                    alt((
+                        value(None, tag("_")),
+                        opt(map(parse_type, GenericArg::Type)),
+                    )),
+                ),
             ),
             char('>'),
         ),

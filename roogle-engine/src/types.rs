@@ -106,7 +106,7 @@ pub struct Function {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum GenericArgs {
     AngleBracketed {
-        args: Vec<GenericArg>, /* bindings: Vec<TypeBinding> */
+        args: Vec<Option<GenericArg>>, /* bindings: Vec<TypeBinding> */
     },
     // Parenthesized { inputs: Vec<Type>, output: Option<Type> },
 }
