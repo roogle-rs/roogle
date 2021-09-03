@@ -66,7 +66,7 @@ where
     let (i, inputs) = delimited(
         char('('),
         alt((
-            map(tag(".."), |_| None),
+            value(None, tag("..")),
             opt(parse_arguments),
             value(Some(Vec::new()), not(eof)),
         )),
@@ -88,10 +88,13 @@ where
             multispace0,
             alt((
                 parse_argument,
-                map(char('_'), |_| Argument {
-                    ty: None,
-                    name: None,
-                }),
+                value(
+                    Argument {
+                        ty: None,
+                        name: None,
+                    },
+                    char('_'),
+                ),
                 map(parse_type, |ty| Argument {
                     ty: Some(ty),
                     name: None,
@@ -105,10 +108,10 @@ fn parse_argument<'a, E>(i: &'a str) -> IResult<&'a str, Argument, E>
 where
     E: ParseError<&'a str> + ContextError<&'a str>,
 {
-    let (i, name) = alt((map(char('_'), |_| None), opt(parse_symbol)))(i)?;
+    let (i, name) = alt((value(None, char('_')), opt(parse_symbol)))(i)?;
     let (i, _) = char(':')(i)?;
     let (i, _) = multispace0(i)?;
-    let (i, ty) = alt((map(char('_'), |_| None), opt(parse_type)))(i)?;
+    let (i, ty) = alt((value(None, char('_')), opt(parse_type)))(i)?;
 
     let arg = Argument { ty, name };
     Ok((i, arg))
@@ -122,7 +125,7 @@ where
         multispace0,
         alt((
             map(preceded(tag("->"), parse_type), FnRetTy::Return),
-            map(eof, |_| FnRetTy::DefaultReturn),
+            value(FnRetTy::DefaultReturn, eof),
         )),
     )(i)
 }
@@ -157,7 +160,7 @@ where
                 char(','),
                 preceded(
                     multispace0,
-                    alt((map(tag("_"), |_| None), map(parse_type, Some))),
+                    alt((value(None, tag("_")), map(parse_type, Some))),
                 ),
             ),
             char(')'),
@@ -173,7 +176,7 @@ where
     map(
         delimited(
             char('['),
-            alt((map(tag("_"), |_| None), map(parse_type, Some))),
+            alt((value(None, tag("_")), map(parse_type, Some))),
             char(']'),
         ),
         |ty| Type::Slice(ty.map(Box::new)),
@@ -184,7 +187,7 @@ fn parse_raw_pointer<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
 where
     E: ParseError<&'a str> + ContextError<&'a str>,
 {
-    let (i, mutable) = alt((map(tag("*mut"), |_| true), map(tag("*const"), |_| false)))(i)?;
+    let (i, mutable) = alt((value(true, tag("*mut")), value(false, tag("*const"))))(i)?;
     let (i, type_) = parse_type(i)?;
 
     Ok((
@@ -200,7 +203,7 @@ fn parse_borrowed_ref<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
 where
     E: ParseError<&'a str> + ContextError<&'a str>,
 {
-    let (i, mutable) = alt((map(tag("&mut"), |_| true), map(tag("&"), |_| false)))(i)?;
+    let (i, mutable) = alt((value(true, tag("&mut")), value(false, tag("&"))))(i)?;
     let (i, type_) = parse_type(i)?;
 
     Ok((
@@ -270,23 +273,24 @@ fn parse_primitive_type<'a, E>(i: &'a str) -> IResult<&'a str, PrimitiveType, E>
 where
     E: ParseError<&'a str> + ContextError<&'a str>,
 {
+    use PrimitiveType::*;
     alt((
-        map(tag("isize"), |_| PrimitiveType::Isize),
-        map(tag("i8"), |_| PrimitiveType::I8),
-        map(tag("i16"), |_| PrimitiveType::I16),
-        map(tag("i32"), |_| PrimitiveType::I32),
-        map(tag("i64"), |_| PrimitiveType::I64),
-        map(tag("i128"), |_| PrimitiveType::I128),
-        map(tag("usize"), |_| PrimitiveType::Usize),
-        map(tag("u8"), |_| PrimitiveType::U8),
-        map(tag("u16"), |_| PrimitiveType::U16),
-        map(tag("u32"), |_| PrimitiveType::U32),
-        map(tag("u64"), |_| PrimitiveType::U64),
-        map(tag("u128"), |_| PrimitiveType::U128),
-        map(tag("f32"), |_| PrimitiveType::F32),
-        map(tag("f64"), |_| PrimitiveType::F64),
-        map(tag("char"), |_| PrimitiveType::Char),
-        map(tag("bool"), |_| PrimitiveType::Bool),
-        map(tag("str"), |_| PrimitiveType::Str),
+        value(Isize, tag("isize")),
+        value(I8, tag("i8")),
+        value(I16, tag("i16")),
+        value(I32, tag("i32")),
+        value(I64, tag("i64")),
+        value(I128, tag("i128")),
+        value(Usize, tag("usize")),
+        value(U8, tag("u8")),
+        value(U16, tag("u16")),
+        value(U32, tag("u32")),
+        value(U64, tag("u64")),
+        value(U128, tag("u128")),
+        value(F32, tag("f32")),
+        value(F64, tag("f64")),
+        value(Char, tag("char")),
+        value(Bool, tag("bool")),
+        value(Str, tag("str")),
     ))(i)
 }
