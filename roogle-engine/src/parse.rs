@@ -1,10 +1,10 @@
 use log_derive::logfn;
 use nom::{
     branch::alt,
-    bytes::complete::tag,
+    bytes::complete::{tag, take_while1},
     character::complete::char,
     character::complete::{alpha1, alphanumeric1, multispace0, multispace1},
-    combinator::{eof, map, not, opt, recognize, value},
+    combinator::{eof, fail, map, not, opt, recognize, value},
     error::{ContextError, ParseError},
     multi::{many0, separated_list0},
     sequence::{delimited, pair, preceded},
@@ -135,6 +135,7 @@ where
         multispace0,
         alt((
             map(parse_primitive_type, Type::Primitive),
+            parse_generic_type,
             parse_unresolved_path,
             parse_tuple,
             parse_slice,
@@ -242,6 +243,21 @@ where
         ),
         |args| GenericArgs::AngleBracketed { args },
     )(i)
+}
+
+fn parse_generic_type<'a, E>(i: &'a str) -> IResult<&'a str, Type, E>
+where
+    E: ParseError<&'a str> + ContextError<&'a str>,
+{
+    let (i, gen) = map(take_while1(|c: char| c.is_ascii_uppercase()), |s: &str| {
+        Type::Generic(s.to_owned())
+    })(i)?;
+
+    if i.chars().next().map_or(false, |c| c.is_ascii_lowercase()) {
+        fail(i)
+    } else {
+        Ok((i, gen))
+    }
 }
 
 fn parse_primitive_type<'a, E>(i: &'a str) -> IResult<&'a str, PrimitiveType, E>

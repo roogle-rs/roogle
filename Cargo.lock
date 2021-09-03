@@ -315,6 +315,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "minimal-lexical"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6595bb28ed34f43c3fe088e48f6cfb2e033cab45f25a5384d5fdf564fbc8c4b2"
+
+[[package]]
 name = "nibble_vec"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -346,6 +352,17 @@ dependencies = [
  "funty",
  "lexical-core",
  "memchr",
+ "version_check",
+]
+
+[[package]]
+name = "nom"
+version = "7.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ffd9d26838a953b4af82cbeb9f1592c6798916983959be223a7124e992742c1"
+dependencies = [
+ "memchr",
+ "minimal-lexical",
  "version_check",
 ]
 
@@ -448,7 +465,7 @@ name = "roogle"
 version = "0.1.4"
 dependencies = [
  "env_logger",
- "nom",
+ "nom 6.2.1",
  "roogle-engine",
  "rustdoc-types",
  "rustyline",
@@ -463,7 +480,7 @@ version = "0.1.6"
 dependencies = [
  "log",
  "log-derive",
- "nom",
+ "nom 7.0.0",
  "rustdoc-types",
  "serde",
  "serde_json",

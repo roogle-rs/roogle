@@ -148,6 +148,7 @@ pub enum Type {
         name: Symbol,
         args: Option<Box<GenericArgs>>,
     },
+    Generic(String),
     Primitive(PrimitiveType),
     Tuple(Vec<Option<Type>>),
     Slice(Option<Box<Type>>),
