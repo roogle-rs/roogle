@@ -44,6 +44,13 @@ pub enum Similarity {
 use Similarity::*;
 
 impl Similarity {
+    fn upgrade(&self) -> Similarity {
+        match self {
+            Equivalent | Subequal => Equivalent,
+            Different => Different,
+        }
+    }
+
     fn degrade(&self) -> Similarity {
         match self {
             Equivalent | Subequal => Subequal,
@@ -266,7 +273,11 @@ impl Approximate<types::Type> for Type {
                     for where_predicate in &generics.where_predicates {
                         if let types::WherePredicate::EqPredicate { lhs, rhs } = where_predicate {
                             if lhs == &types::Type::Generic("Self".to_owned()) {
-                                return q.approx(rhs, generics, substs);
+                                return q
+                                    .approx(rhs, generics, substs)
+                                    .iter()
+                                    .map(|sim| sim.upgrade())
+                                    .collect();
                             }
                         }
                     }
