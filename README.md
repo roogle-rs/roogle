@@ -26,11 +26,19 @@ Note that onlines hands-on is much slower than the repl example below. You may n
 
 ## Example (REPL)
 ```sh
-$ cargo build --release
-$ cargo run --release --quiet -- --index assets/
+$ cargo run --release --bin roogle -- --index assets/
 > fn (Option<T>) -> bool
 > fn (Option<Option<T>>) -> Option<T>
 > fn (Option<T>, Option<T>) -> Option<T>
 > fn (Option<Result<T, E>>) -> Result<Option<T>, E>
 > fn (&mut Vec<T>, T)
+```
+
+## Example (API Server)
+```sh
+$ cargo run --release --bin roogle-api
+$ curl -X GET \
+      -H "Content-type: application/json" \
+      -d "fn (Option<Result<T, E>>) -> Result<Option<T>, E>" \
+      "localhost:8000/" # On another shell session
 ```

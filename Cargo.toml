@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "roogle",
+    "roogle-api",
     "roogle-engine",
 ]
