@@ -4,7 +4,7 @@ use rustdoc_types as types;
 use rustdoc_types::{Id, Item, ItemSummary};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Crates {
     pub krates: HashMap<String, Crate>,
     /// Map from a name of a ADT to names of crates containing the ADT which has the name.
@@ -35,7 +35,7 @@ impl From<Vec<types::Crate>> for Crates {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Crate {
     pub functions: HashMap<Id, Item>,
     pub impls: HashMap<Id, Item>,
