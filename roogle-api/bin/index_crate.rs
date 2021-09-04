@@ -9,7 +9,7 @@ fn main() {
     let workdir = env::current_dir().unwrap();
     let assets = workdir.join("assets");
 
-    let krate = env::args().nth(1).expect("specify a krate to index");
+    let krate = env::args().nth(1).expect("specify a crate to index");
 
     let client = SyncClient::new(
         "roogle (git@hkmatsumoto.com)",
