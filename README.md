@@ -52,3 +52,8 @@ for registering the toolchain.
 ```sh
 $ cargo run --release --bin index_crate -- <crate-name>
 ```
+
+### Indexing 100 most downloaded crates
+```sh
+$ cargo run --release --bin index_100_crates
+```
