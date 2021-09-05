@@ -7,12 +7,19 @@ edition = "2018"
 
 [dependencies]
 crates_io_api = "0.7"
+indicatif = "0.16.2"
 reqwest = "0.11"
 rocket = "0.5.0-rc.1"
 roogle-engine = { version = "0.1.7", path = "../roogle-engine" }
-serde_json = "1.0"
+rustdoc-types = "0.3.0"
+serde = "1.0"
+serde_json = { version = "1.0", features = ["unbounded_depth"] }
 tempfile = "3.2.0"
 
 [[bin]]
 name = "index_crate"
 path = "bin/index_crate.rs"
+
+[[bin]]
+name = "index_100_crates"
+path = "bin/index_100_crates.rs"

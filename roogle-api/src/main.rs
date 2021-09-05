@@ -2,10 +2,12 @@
 extern crate rocket;
 use rocket::response::content;
 use rocket::State;
+use serde::Deserialize;
 
 use roogle_engine::exec::QueryExecutor;
 use roogle_engine::parse::parse_query;
 use roogle_engine::types::Crates;
+use rustdoc_types::Crate;
 
 #[get("/", data = "<query>")]
 fn index(query: &str, qe: &State<QueryExecutor>) -> content::Json<String> {
@@ -37,10 +39,10 @@ fn krates() -> Crates {
         .expect("failed to read directory")
         .map(Result::unwrap)
         .map(|entry| {
-            serde_json::from_str(
-                &std::fs::read_to_string(entry.path()).expect("failed to read file"),
-            )
-            .expect("failed to deserialize")
+            let json = std::fs::read_to_string(entry.path()).expect("failed to read file");
+            let mut deserializer = serde_json::Deserializer::from_str(&json);
+            deserializer.disable_recursion_limit();
+            Crate::deserialize(&mut deserializer).expect("failed to deserialize")
         })
         .collect();
 
