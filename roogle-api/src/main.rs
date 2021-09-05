@@ -21,7 +21,7 @@ fn index_with_query(query: &str, qe: &State<QueryExecutor>) -> content::Json<Str
         .exec(query)
         .into_iter()
         .take(30)
-        .map(|item| item.name.as_ref())
+        .map(|item| item.path.join("::"))
         .collect();
     content::Json(serde_json::to_string(&items).unwrap())
 }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use rustdoc_types as types;
-use rustdoc_types::{Id, Item, ItemSummary};
+use rustdoc_types::{Id, ItemSummary};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -37,9 +37,9 @@ impl From<Vec<types::Crate>> for Crates {
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Crate {
-    pub functions: HashMap<Id, Item>,
-    pub impls: HashMap<Id, Item>,
-    pub methods: HashMap<Id, Item>,
+    pub functions: HashMap<Id, types::Item>,
+    pub impls: HashMap<Id, types::Item>,
+    pub methods: HashMap<Id, types::Item>,
     pub paths: HashMap<Id, ItemSummary>,
 }
 
@@ -69,6 +69,13 @@ impl From<types::Crate> for Crate {
             paths,
         }
     }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct Item {
+    pub path: Vec<String>,
+    pub link: Vec<String>,
+    pub docs: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

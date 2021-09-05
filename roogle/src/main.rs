@@ -47,7 +47,7 @@ fn main() {
                 let query = parse_query(&line).expect("failed in parsing query").1;
                 let items = qe.exec(query);
                 for item in items.iter().take(3) {
-                    println!("{:?}", item.name);
+                    println!("{:?}", item.path.join("::"));
                 }
             }
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
