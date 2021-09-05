@@ -38,9 +38,8 @@ $ cargo run --release --bin roogle -- --index assets/
 ```sh
 $ cargo run --release --bin roogle-api
 $ curl -X GET \
-      -H "Content-type: application/json" \
       -d "fn (Option<Result<T, E>>) -> Result<Option<T>, E>" \
-      "localhost:8000/" # On another shell session
+      "localhost:8000/?" # On another shell session
 ```
 
 ### Indexing a 3rd party crate
