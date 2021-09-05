@@ -55,7 +55,11 @@ impl QueryExecutor {
 
                         for item in &impl_.items {
                             if let Some(item) = krate.methods.get(item) {
-                                let sims = query.approx(item, &generics, &mut HashMap::new());
+                                let mut sims = query.approx(item, &generics, &mut HashMap::new());
+                                // Prioritize method more than trait methods
+                                if impl_.trait_.is_none() {
+                                    sims.push(Similarity::Equivalent);
+                                }
                                 if sims.iter().any(|sim| sim != &Similarity::Different) {
                                     items_with_sims.push((item, sims))
                                 }
@@ -76,7 +80,11 @@ impl QueryExecutor {
 
                         for item in &impl_.items {
                             if let Some(item) = krate.methods.get(item) {
-                                let sims = query.approx(item, &generics, &mut HashMap::new());
+                                let mut sims = query.approx(item, &generics, &mut HashMap::new());
+                                // Prioritize method more than trait methods
+                                if impl_.trait_.is_none() {
+                                    sims.push(Similarity::Equivalent);
+                                }
                                 if sims.iter().any(|sim| sim != &Similarity::Different) {
                                     items_with_sims.push((item, sims))
                                 }

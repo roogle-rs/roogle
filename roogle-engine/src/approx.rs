@@ -285,7 +285,7 @@ impl Approximate<types::Type> for Type {
                 match substs.get(i) {
                     Some(i) => {
                         if q == i {
-                            vec![Subequal]
+                            vec![Equivalent]
                         } else {
                             vec![Different]
                         }
