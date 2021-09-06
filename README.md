@@ -22,8 +22,6 @@ Current available features are listed below.
 ## Example
 [Online hands-on](https://roogle.hkmatsumoto.com)
 
-Note that onlines hands-on is much slower than the repl example below. You may need to wait 10 seconds to get a query completed.
-
 ## Example (REPL)
 ```sh
 $ cargo run --release --bin roogle -- --index assets/
