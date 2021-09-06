@@ -37,8 +37,11 @@ fn parse_function_query<'a, E>(i: &'a str) -> IResult<&'a str, Query, E>
 where
     E: ParseError<&'a str> + ContextError<&'a str>,
 {
-    let (i, _) = tag("fn")(i)?;
-    let (i, _) = multispace1(i)?;
+    let (i, f) = opt(tag("fn"))(i)?;
+    let (i, _) = match f {
+        Some(_) => multispace1(i)?,
+        None => multispace0(i)?,
+    };
     let (i, name) = opt(parse_symbol)(i)?;
     let (i, decl) = opt(parse_function)(i)?;
 
