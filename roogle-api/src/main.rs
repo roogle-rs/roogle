@@ -1,7 +1,9 @@
 #[macro_use]
 extern crate rocket;
+use rocket::http::Header;
 use rocket::response::content;
 use rocket::State;
+use rocket::fairing::{Fairing, Info, Kind};
 use serde::Deserialize;
 
 use roogle_engine::exec::QueryExecutor;
@@ -21,7 +23,6 @@ fn index_with_query(query: &str, qe: &State<QueryExecutor>) -> content::Json<Str
         .exec(query)
         .into_iter()
         .take(30)
-        .map(|item| item.path.join("::"))
         .collect();
     content::Json(serde_json::to_string(&items).unwrap())
 }
@@ -30,6 +31,7 @@ fn index_with_query(query: &str, qe: &State<QueryExecutor>) -> content::Json<Str
 fn rocket() -> _ {
     let qe = QueryExecutor::new(krates());
     rocket::build()
+        .attach(Cors)
         .manage(qe)
         .mount("/", routes![index, index_with_query])
 }
@@ -47,4 +49,23 @@ fn krates() -> Crates {
         .collect();
 
     Crates::from(krates)
+}
+
+struct Cors;
+
+#[rocket::async_trait]
+impl Fairing for Cors {
+    fn info(&self) -> Info {
+        Info {
+            name: "CORS",
+            kind: Kind::Response
+        }
+    }
+
+    async fn on_response<'r>(&self, _: &'r rocket::Request<'_>, res: &mut rocket::Response<'r>) {
+        res.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        res.set_header(Header::new("Access-Control-Allow-Methods", "GET"));
+        res.set_header(Header::new("Access-Control-Allow-Headers", "Content-Type"));
+        res.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+    }
 }
