@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate rocket;
+use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Header;
 use rocket::response::content;
 use rocket::State;
-use rocket::fairing::{Fairing, Info, Kind};
 use serde::Deserialize;
 
 use roogle_engine::exec::QueryExecutor;
@@ -19,11 +19,7 @@ fn index(query: &str, qe: &State<QueryExecutor>) -> content::Json<String> {
 #[get("/?<query>")]
 fn index_with_query(query: &str, qe: &State<QueryExecutor>) -> content::Json<String> {
     let query = parse_query(query).expect("failed to parse query").1;
-    let items: Vec<_> = qe
-        .exec(query)
-        .into_iter()
-        .take(30)
-        .collect();
+    let items: Vec<_> = qe.exec(query).into_iter().take(30).collect();
     content::Json(serde_json::to_string(&items).unwrap())
 }
 
@@ -58,7 +54,7 @@ impl Fairing for Cors {
     fn info(&self) -> Info {
         Info {
             name: "CORS",
-            kind: Kind::Response
+            kind: Kind::Response,
         }
     }
 

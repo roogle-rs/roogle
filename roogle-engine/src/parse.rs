@@ -127,6 +127,10 @@ where
     preceded(
         multispace0,
         alt((
+            value(
+                FnRetTy::DefaultReturn,
+                preceded(preceded(tag("->"), multispace0), tag("()")),
+            ),
             map(preceded(tag("->"), parse_type), FnRetTy::Return),
             value(FnRetTy::DefaultReturn, eof),
         )),
