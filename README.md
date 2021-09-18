@@ -41,10 +41,6 @@ $ curl -X GET \
 ```
 
 ### Indexing a 3rd party crate
-Before running the command below, build [custom rustdoc](https://github.com/hkmatsumoto/rust/tree/rustdoc-roogle) and register `stage1`.
-See [this section](https://rustc-dev-guide.rust-lang.org/getting-started.html#building-and-testing-rustdoc) for buliding rustdoc,
-and [this section](https://rustc-dev-guide.rust-lang.org/building/how-to-build-and-run.html#creating-a-rustup-toolchain)
-for registering the toolchain.
 
 ```sh
 $ cargo run --release --bin index_crate -- <crate-name>

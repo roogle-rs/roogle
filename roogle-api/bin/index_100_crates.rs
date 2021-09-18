@@ -53,7 +53,7 @@ fn main() {
         std::env::set_current_dir(&tmp.join(format!("{}-{}", name, version))).unwrap();
         Command::new("cargo")
             .args(&[
-                "+stage1",
+                "+nightly",
                 "rustdoc",
                 "--",
                 "--output-format",
