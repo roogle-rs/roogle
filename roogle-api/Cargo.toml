@@ -6,10 +6,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-crates_io_api = "0.7"
+crates_io_api = {git = "https://github.com/theduke/crates_io_api.git", default-features = false, features = ["rustls"] }
 indicatif = "0.16.2"
-reqwest = "0.11"
-rocket = "0.5.0-rc.1"
+reqwest = { version = "0.11", default-features = false, features = [ "rustls-tls" ] }
+rocket = { version = "0.5.0-rc.1", default-features = false }
 roogle-engine = { version = "0.1.7", path = "../roogle-engine" }
 rustdoc-types = "0.3.0"
 serde = "1.0"
