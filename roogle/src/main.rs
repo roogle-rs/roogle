@@ -10,7 +10,7 @@ use rocket::{
     response::content,
     State,
 };
-use tracing::debug;
+use tracing::{debug, warn};
 
 use roogle_engine::{query::parse::parse_query, search::Scope, Index};
 
@@ -95,8 +95,14 @@ fn index() -> Result<Index> {
                 .to_owned();
             Ok((file_name, krate))
         })
-        .collect::<Result<HashMap<_, _>>>();
-    crates.map(|crates| Index { crates })
+        .filter_map(|res: Result<_, anyhow::Error>| {
+            if let Err(ref e) = res {
+                warn!("parsing a JSON file skipped: {}", e);
+            }
+            res.ok()
+        })
+        .collect::<HashMap<_, _>>();
+    Ok(Index { crates })
 }
 
 struct Cors;
