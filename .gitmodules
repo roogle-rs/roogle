@@ -1,0 +1,3 @@
+[submodule "roogle-index"]
+	path = roogle-index
+	url = git@github.com:roogle-rs/roogle-index.git

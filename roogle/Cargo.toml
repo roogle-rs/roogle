@@ -1,20 +1,18 @@
 [package]
 name = "roogle"
-version = "0.1.4"
-authors = ["Hirochika Matsumoto <git@hkmatsumoto.com>"]
+version = "0.1.0"
 edition = "2018"
-description = "A Rust API search engine"
-readme = "../README.md"
-repository = "https://github.com/hkmatsumoto/roogle"
-license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-env_logger = "0.9"
-nom = "6.2"
-roogle-engine = { version = "0.1.7", path = "../roogle-engine" }
-rustdoc-types = "0.3.0"
-rustyline = "8.2.0"
+anyhow = "1.0"
+rocket = "0.5.0-rc.1"
+serde_json = "1.0.68"
+rustdoc-types = "0.5.0"
+tracing-subscriber = "0.2"
+tracing = "0.1"
+tracing-tree = "0.1"
 
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-structopt = "0.3"
+[dependencies.roogle-engine]
+path = "../roogle-engine"
