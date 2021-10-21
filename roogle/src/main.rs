@@ -14,7 +14,16 @@ use tracing::{debug, warn};
 
 use roogle_engine::{query::parse::parse_query, search::Scope, Index};
 
-#[get("/search?<scope>", data = "<query>")]
+#[get("/search?<scope>", data = "<query>", rank = 2)]
+fn search_with_data(
+    query: &str,
+    scope: &str,
+    index: &State<Index>,
+) -> Result<content::Json<String>, rocket::response::Debug<anyhow::Error>> {
+    search(query, scope, index)
+}
+
+#[get("/search?<scope>&<query>")]
 fn search(
     query: &str,
     scope: &str,
@@ -41,8 +50,7 @@ fn search(
 
     let hits = index
         .search(
-            &query,
-            scope,
+            &query, scope,
             0.4, // NOTE(hkmatsumoto): Just a temporal value; maybe needs discussion in the future.
         )
         .with_context(|| format!("search with query `{:?}` failed", query))?;
@@ -65,7 +73,7 @@ fn rocket() -> _ {
     rocket::build()
         .attach(Cors)
         .manage(index)
-        .mount("/", routes![search])
+        .mount("/", routes![search, search_with_data])
 }
 
 fn init_logger() {
