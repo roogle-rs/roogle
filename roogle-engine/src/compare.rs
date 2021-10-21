@@ -120,6 +120,8 @@ impl Compare<String> for Symbol {
         _: &mut HashMap<String, Type>,
     ) -> Vec<Similarity> {
         use std::cmp::max;
+
+        let symbol = symbol.split("::").last().unwrap(); // SAFETY: `symbol` is not empty.
         vec![Continuous(
             levenshtein(self, symbol) as f32 / max(self.len(), symbol.len()) as f32,
         )]

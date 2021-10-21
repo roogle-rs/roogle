@@ -3,7 +3,7 @@ extern crate rocket;
 
 use std::collections::HashMap;
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use rocket::{
     fairing::{Fairing, Info, Kind},
     http::Header,
@@ -14,11 +14,25 @@ use tracing::{debug, warn};
 
 use roogle_engine::{query::parse::parse_query, search::Scope, Index};
 
-#[get("/search", data = "<query>")]
+#[get("/search?<scope>", data = "<query>")]
 fn search(
     query: &str,
+    scope: &str,
     index: &State<Index>,
 ) -> Result<content::Json<String>, rocket::response::Debug<anyhow::Error>> {
+    let scope = match scope.split(':').collect::<Vec<_>>().as_slice() {
+        ["set", set] => {
+            let json = std::fs::read_to_string(format!("roogle-index/set/{}.json", set))
+                .with_context(|| format!("failed to read `{}.json`", set))?;
+            let set = serde_json::from_str::<Vec<String>>(&json)
+                .with_context(|| format!("failed to deserialize set `{}`", set))?;
+            Scope::Set(set)
+        }
+        ["crate", krate] => Scope::Crate(krate.to_string()),
+        _ => Err(anyhow!("parsing scope `{}` failed", scope))?,
+    };
+    debug!(?scope);
+
     let query = parse_query(query)
         .ok()
         .context(format!("parsing query `{}` failed", query))?
@@ -28,11 +42,7 @@ fn search(
     let hits = index
         .search(
             &query,
-            Scope::Set(vec![
-                "alloc".to_owned(),
-                "core".to_owned(),
-                "std".to_owned(),
-            ]),
+            scope,
             0.4, // NOTE(hkmatsumoto): Just a temporal value; maybe needs discussion in the future.
         )
         .with_context(|| format!("search with query `{:?}` failed", query))?;

@@ -24,5 +24,5 @@ $ cargo r --release
 # Then, on another shell session, run:
 $ curl -X GET \
       -d "fn (Option<Result<T, E>>) -> Result<Option<T>, E>" \
-      "localhost:8000/search"
+      "localhost:8000/search?scope=set:libstd"
 ```
