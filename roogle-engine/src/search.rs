@@ -289,13 +289,8 @@ impl Index {
 mod tests {
     use std::collections::HashSet;
 
-    use smallvec::{smallvec, SmallVec};
-
     use super::*;
-    use crate::compare::{
-        DiscreteSimilarity::*,
-        Similarity::{self, *},
-    };
+    use crate::compare::{DiscreteSimilarity::*, Similarity::*};
     use crate::query::{FnDecl, FnRetTy, Function};
 
     fn krate() -> types::Crate {
@@ -355,10 +350,9 @@ mod tests {
         let mut generics = types::Generics::default();
         let mut substs = HashMap::default();
 
-        let expected: SmallVec<[_; 10]> = smallvec![Continuous(0.0)];
         assert_eq!(
             query.compare(&item, &krate, &mut generics, &mut substs),
-            expected
+            vec![Continuous(0.0)]
         )
     }
 
@@ -377,8 +371,9 @@ mod tests {
         let mut generics = types::Generics::default();
         let mut substs = HashMap::default();
 
-        let expected: SmallVec<[Similarity; 10]> =
-            smallvec![Discrete(Equivalent), Discrete(Equivalent)];
-        assert_eq!(q.compare(&i, &krate, &mut generics, &mut substs), expected)
+        assert_eq!(
+            q.compare(&i, &krate, &mut generics, &mut substs),
+            vec![Discrete(Equivalent), Discrete(Equivalent)]
+        )
     }
 }

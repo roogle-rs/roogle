@@ -965,7 +965,6 @@ dependencies = [
  "rustdoc-types",
  "serde",
  "serde_json",
- "smallvec",
  "thiserror",
  "tracing",
 ]

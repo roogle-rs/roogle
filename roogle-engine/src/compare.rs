@@ -5,7 +5,6 @@ use std::{
 
 use levenshtein::levenshtein;
 use rustdoc_types as types;
-use smallvec::{smallvec, SmallVec};
 use tracing::{instrument, trace};
 
 use crate::query::*;
@@ -33,7 +32,7 @@ impl Similarity {
 use Similarity::*;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Similarities(pub SmallVec<[Similarity; 10]>);
+pub struct Similarities(pub Vec<Similarity>);
 
 impl Similarities {
     /// Calculate objective similarity for sorting.
@@ -81,7 +80,7 @@ pub trait Compare<Rhs> {
         krate: &types::Crate,
         generics: &mut types::Generics,
         substs: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]>;
+    ) -> Vec<Similarity>;
 }
 
 impl Compare<types::Item> for Query {
@@ -92,8 +91,8 @@ impl Compare<types::Item> for Query {
         krate: &types::Crate,
         generics: &mut types::Generics,
         substs: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
-        let mut sims = smallvec![];
+    ) -> Vec<Similarity> {
+        let mut sims = vec![];
 
         match (&self.name, &item.name) {
             (Some(q), Some(i)) => sims.append(&mut q.compare(i, krate, generics, substs)),
@@ -119,10 +118,10 @@ impl Compare<String> for Symbol {
         _: &types::Crate,
         _: &mut types::Generics,
         _: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
+    ) -> Vec<Similarity> {
         use std::cmp::max;
-        smallvec![Continuous(
-            levenshtein(self, symbol) as f32 / max(self.len(), symbol.len()) as f32
+        vec![Continuous(
+            levenshtein(self, symbol) as f32 / max(self.len(), symbol.len()) as f32,
         )]
     }
 }
@@ -135,14 +134,14 @@ impl Compare<types::ItemEnum> for QueryKind {
         krate: &types::Crate,
         generics: &mut types::Generics,
         substs: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
+    ) -> Vec<Similarity> {
         use types::ItemEnum::*;
         use QueryKind::*;
 
         match (self, kind) {
             (FunctionQuery(q), Function(i)) => q.compare(i, krate, generics, substs),
             (FunctionQuery(q), Method(i)) => q.compare(i, krate, generics, substs),
-            (FunctionQuery(_), _) => smallvec![Discrete(Different)],
+            (FunctionQuery(_), _) => vec![Discrete(Different)],
         }
     }
 }
@@ -155,7 +154,7 @@ impl Compare<types::Function> for Function {
         krate: &types::Crate,
         generics: &mut types::Generics,
         substs: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
+    ) -> Vec<Similarity> {
         generics
             .params
             .append(&mut function.generics.params.clone());
@@ -174,7 +173,7 @@ impl Compare<types::Method> for Function {
         krate: &types::Crate,
         generics: &mut types::Generics,
         substs: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
+    ) -> Vec<Similarity> {
         generics.params.append(&mut method.generics.params.clone());
         generics
             .where_predicates
@@ -191,8 +190,8 @@ impl Compare<types::FnDecl> for FnDecl {
         krate: &types::Crate,
         generics: &mut types::Generics,
         substs: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
-        let mut sims = smallvec![];
+    ) -> Vec<Similarity> {
+        let mut sims = vec![];
 
         if let Some(ref inputs) = self.inputs {
             inputs.iter().enumerate().for_each(|(idx, q)| {
@@ -205,7 +204,7 @@ impl Compare<types::FnDecl> for FnDecl {
                 // FIXME: Replace this line below with `usize::abs_diff` once it got stablized.
                 let abs_diff =
                     max(inputs.len(), decl.inputs.len()) - min(inputs.len(), decl.inputs.len());
-                sims.append::<[Similarity; 10]>(&mut smallvec![Discrete(Different); abs_diff])
+                sims.append(&mut vec![Discrete(Different); abs_diff])
             } else if inputs.is_empty() && decl.inputs.is_empty() {
                 sims.push(Discrete(Equivalent));
             }
@@ -229,8 +228,8 @@ impl Compare<(String, types::Type)> for Argument {
         krate: &types::Crate,
         generics: &mut types::Generics,
         substs: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
-        let mut sims = smallvec![];
+    ) -> Vec<Similarity> {
+        let mut sims = vec![];
 
         if let Some(ref name) = self.name {
             sims.append(&mut name.compare(&arg.0, krate, generics, substs));
@@ -254,11 +253,11 @@ impl Compare<Option<types::Type>> for FnRetTy {
         krate: &types::Crate,
         generics: &mut types::Generics,
         substs: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
+    ) -> Vec<Similarity> {
         match (self, ret_ty) {
             (FnRetTy::Return(q), Some(i)) => q.compare(i, krate, generics, substs),
-            (FnRetTy::DefaultReturn, None) => smallvec![Discrete(Equivalent)],
-            _ => smallvec![Discrete(Different)],
+            (FnRetTy::DefaultReturn, None) => vec![Discrete(Equivalent)],
+            _ => vec![Discrete(Different)],
         }
     }
 }
@@ -270,7 +269,7 @@ fn compare_type(
     generics: &mut types::Generics,
     substs: &mut HashMap<String, Type>,
     allow_recursion: bool,
-) -> SmallVec<[Similarity; 10]> {
+) -> Vec<Similarity> {
     use {crate::query::Type::*, types::Type};
 
     match (lhs, rhs) {
@@ -294,14 +293,14 @@ fn compare_type(
         (q, Type::Generic(i)) => match substs.get(i) {
             Some(i) => {
                 if q == i {
-                    smallvec![Discrete(Equivalent)]
+                    vec![Discrete(Equivalent)]
                 } else {
-                    smallvec![Discrete(Different)]
+                    vec![Discrete(Different)]
                 }
             }
             None => {
                 substs.insert(i.clone(), q.clone());
-                smallvec![Discrete(Subequal)]
+                vec![Discrete(Subequal)]
             }
         },
         (q, Type::ResolvedPath { id, .. })
@@ -320,9 +319,8 @@ fn compare_type(
             {
                 // TODO: Acknowledge `generics` of `types::Typedef` to get more accurate search results.
                 let sims_adt = q.compare(i, krate, generics, substs);
-                let sum = |sims: &SmallVec<[Similarity; 10]>| -> f32 {
-                    sims.iter().map(Similarity::score).sum()
-                };
+                let sum =
+                    |sims: &Vec<Similarity>| -> f32 { sims.iter().map(Similarity::score).sum() };
                 if sum(&sims_adt) < sum(&sims_typedef) {
                     return sims_adt;
                 }
@@ -335,20 +333,20 @@ fn compare_type(
                 .zip(i.iter())
                 .filter_map(|(q, i)| q.as_ref().map(|q| q.compare(i, krate, generics, substs)))
                 .flatten()
-                .collect::<SmallVec<_>>();
+                .collect::<Vec<_>>();
 
             // They are both tuples.
             sims.push(Discrete(Equivalent));
 
             // FIXME: Replace this line below with `usize::abs_diff` once it got stablized.
             let abs_diff = max(q.len(), i.len()) - min(q.len(), i.len());
-            sims.append::<[Similarity; 10]>(&mut smallvec![Discrete(Different); abs_diff]);
+            sims.append(&mut vec![Discrete(Different); abs_diff]);
 
             sims
         }
         (Slice(q), Type::Slice(i)) => {
             // They are both slices.
-            let mut sims = smallvec![Discrete(Equivalent)];
+            let mut sims = vec![Discrete(Equivalent)];
 
             if let Some(q) = q {
                 sims.append(&mut q.compare(i, krate, generics, substs));
@@ -436,7 +434,7 @@ fn compare_type(
                 },
                 (Some(q), None) => {
                     let GenericArgs::AngleBracketed { args: ref q } = **q;
-                    sims.append::<[Similarity; 10]>(&mut smallvec![Discrete(Different); q.len()])
+                    sims.append(&mut vec![Discrete(Different); q.len()])
                 }
                 (None, _) => {}
             }
@@ -444,7 +442,7 @@ fn compare_type(
             sims
         }
         (Primitive(q), Type::Primitive(i)) => q.compare(i, krate, generics, substs),
-        _ => smallvec![Discrete(Different)],
+        _ => vec![Discrete(Different)],
     }
 }
 
@@ -456,7 +454,7 @@ impl Compare<types::Type> for Type {
         krate: &types::Crate,
         generics: &mut types::Generics,
         substs: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
+    ) -> Vec<Similarity> {
         compare_type(self, type_, krate, generics, substs, true)
     }
 }
@@ -469,11 +467,11 @@ impl Compare<String> for PrimitiveType {
         _: &types::Crate,
         _: &mut types::Generics,
         _: &mut HashMap<String, Type>,
-    ) -> SmallVec<[Similarity; 10]> {
+    ) -> Vec<Similarity> {
         if self.as_str() == prim_ty {
-            smallvec![Discrete(Equivalent)]
+            vec![Discrete(Equivalent)]
         } else {
-            smallvec![Discrete(Different)]
+            vec![Discrete(Different)]
         }
     }
 }
