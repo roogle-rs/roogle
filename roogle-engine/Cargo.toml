@@ -2,7 +2,7 @@
 name = "roogle-engine"
 version = "1.0.1"
 authors = ["Hirochika Matsumoto <git@hkmatsumoto.com>"]
-edition = "2018"
+edition = "2021"
 description = "A Rust API search engine"
 documentation = "https://docs.rs/roogle-engine"
 readme = "../README.md"
