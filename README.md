@@ -21,7 +21,8 @@ Roogle is a Rust API search engine, which allows you to search functions by name
 ## Example
 ```sh
 $ cargo r --release
+# Then, on another shell session, run:
 $ curl -X GET \
       -d "fn (Option<Result<T, E>>) -> Result<Option<T>, E>" \
-      "localhost:8000/?" # On another shell session
+      "localhost:8000/search"
 ```
