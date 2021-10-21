@@ -83,7 +83,7 @@ impl Index {
                 match item.inner {
                     types::ItemEnum::Function(_) => {
                         let (path, link) = Self::path_and_link(krate, &krate_name, item, None)?;
-                        let sims = self.compare(query, item, None);
+                        let sims = self.compare(query, item, krate, None);
 
                         if sims.score() < threshold {
                             hits.push(Hit {
@@ -114,7 +114,7 @@ impl Index {
                                     assoc_item,
                                     Some(impl_),
                                 )?;
-                                let sims = self.compare(query, assoc_item, Some(impl_));
+                                let sims = self.compare(query, assoc_item, krate, Some(impl_));
 
                                 if sims.score() < threshold {
                                     hits.push(Hit {
@@ -138,11 +138,12 @@ impl Index {
         Ok(hits)
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self, krate))]
     fn compare(
         &self,
         query: &Query,
         item: &types::Item,
+        krate: &types::Crate,
         impl_: Option<&types::Impl>,
     ) -> Similarities {
         let mut generics;
@@ -159,7 +160,7 @@ impl Index {
         }
         let mut substs = HashMap::default();
 
-        let sims = query.compare(item, &mut generics, &mut substs);
+        let sims = query.compare(item, krate, &mut generics, &mut substs);
         Similarities(sims)
     }
 
@@ -297,6 +298,18 @@ mod tests {
     };
     use crate::query::{FnDecl, FnRetTy, Function};
 
+    fn krate() -> types::Crate {
+        types::Crate {
+            root: types::Id("0:0".to_owned()),
+            crate_version: Some("0.0.0".to_owned()),
+            includes_private: false,
+            index: Default::default(),
+            paths: Default::default(),
+            external_crates: Default::default(),
+            format_version: 0,
+        }
+    }
+
     fn item(name: String, inner: types::ItemEnum) -> types::Item {
         types::Item {
             id: types::Id("test".to_owned()),
@@ -338,11 +351,15 @@ mod tests {
 
         let function = foo();
         let item = item("foo".to_owned(), types::ItemEnum::Function(function));
+        let krate = krate();
         let mut generics = types::Generics::default();
         let mut substs = HashMap::default();
 
         let expected: SmallVec<[_; 10]> = smallvec![Continuous(0.0)];
-        assert_eq!(query.compare(&item, &mut generics, &mut substs), expected)
+        assert_eq!(
+            query.compare(&item, &krate, &mut generics, &mut substs),
+            expected
+        )
     }
 
     #[test]
@@ -356,11 +373,12 @@ mod tests {
 
         let i = foo();
 
+        let krate = krate();
         let mut generics = types::Generics::default();
         let mut substs = HashMap::default();
 
         let expected: SmallVec<[Similarity; 10]> =
             smallvec![Discrete(Equivalent), Discrete(Equivalent)];
-        assert_eq!(q.compare(&i, &mut generics, &mut substs), expected)
+        assert_eq!(q.compare(&i, &krate, &mut generics, &mut substs), expected)
     }
 }
