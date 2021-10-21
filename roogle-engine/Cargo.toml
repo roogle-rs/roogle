@@ -1,6 +1,6 @@
 [package]
 name = "roogle-engine"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Hirochika Matsumoto <git@hkmatsumoto.com>"]
 edition = "2018"
 description = "A Rust API search engine"
