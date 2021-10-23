@@ -14,7 +14,7 @@ use crate::{
 pub struct Hit {
     pub name: String,
     pub path: Vec<String>,
-    pub link: String,
+    pub link: Vec<String>,
     pub docs: Option<String>,
     #[serde(skip)]
     similarities: Similarities,
@@ -172,7 +172,7 @@ impl Index {
         krate_name: &str,
         item: &types::Item,
         impl_: Option<&types::Impl>,
-    ) -> Result<(Vec<String>, String)> {
+    ) -> Result<(Vec<String>, Vec<String>)> {
         assert!(matches!(
             item.inner,
             types::ItemEnum::Function(_) | types::ItemEnum::Method(_)
@@ -269,7 +269,7 @@ impl Index {
                 if let Some(l) = link.last_mut() {
                     *l = format!("fn.{}.html", l);
                 }
-                Ok((path.clone(), link.join("/")))
+                Ok((path.clone(), link))
             }
             types::ItemEnum::Method(_) => {
                 path.push(item.name.clone().unwrap()); // SAFETY: all methods has its name.
@@ -277,7 +277,7 @@ impl Index {
                 if let Some(l) = link.last_mut() {
                     *l = format!("#method.{}", l);
                 }
-                Ok((path.clone(), link.join("/")))
+                Ok((path.clone(), link))
             }
             // SAFETY: Already asserted at the beginning of this function.
             _ => unreachable!(),
