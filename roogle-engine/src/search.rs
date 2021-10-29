@@ -272,11 +272,12 @@ impl Index {
                 Ok((path.clone(), link))
             }
             types::ItemEnum::Method(_) => {
-                path.push(item.name.clone().unwrap()); // SAFETY: all methods has its name.
-                link.push(item.name.clone().unwrap());
+                let name = item.name.clone().unwrap(); // SAFETY: all methods has its name.
                 if let Some(l) = link.last_mut() {
-                    *l = format!("#method.{}", l);
+                    *l = format!("{}#method.{}", l, &name);
                 }
+                path.push(name);
+
                 Ok((path.clone(), link))
             }
             // SAFETY: Already asserted at the beginning of this function.
