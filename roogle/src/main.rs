@@ -79,7 +79,7 @@ fn scopes(
         result.push(format!("set:{}", set));
     }
     for krate in scopes.inner().krates.keys() {
-        result.push(format!("krate:{}", krate));
+        result.push(format!("crate:{}", krate));
     }
 
     Ok(content::Json(
