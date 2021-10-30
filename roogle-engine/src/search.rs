@@ -44,7 +44,7 @@ pub enum SearchError {
 pub type Result<T> = std::result::Result<T, SearchError>;
 
 /// Represents a scope to search in.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum Scope {
     /// Represetns a single crate.
     Crate(String),

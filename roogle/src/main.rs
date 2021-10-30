@@ -19,8 +19,9 @@ fn search_with_data(
     query: &str,
     scope: &str,
     index: &State<Index>,
+    scopes: &State<Scopes>,
 ) -> Result<content::Json<String>, rocket::response::Debug<anyhow::Error>> {
-    search(query, scope, index)
+    search(query, scope, index, scopes)
 }
 
 #[get("/search?<scope>&<query>")]
@@ -28,16 +29,19 @@ fn search(
     query: &str,
     scope: &str,
     index: &State<Index>,
+    scopes: &State<Scopes>,
 ) -> Result<content::Json<String>, rocket::response::Debug<anyhow::Error>> {
     let scope = match scope.split(':').collect::<Vec<_>>().as_slice() {
-        ["set", set] => {
-            let json = std::fs::read_to_string(format!("roogle-index/set/{}.json", set))
-                .with_context(|| format!("failed to read `{}.json`", set))?;
-            let set = serde_json::from_str::<Vec<String>>(&json)
-                .with_context(|| format!("failed to deserialize set `{}`", set))?;
-            Scope::Set(set)
-        }
-        ["crate", krate] => Scope::Crate(krate.to_string()),
+        ["set", set] => scopes
+            .inner()
+            .sets
+            .get(*set)
+            .context(format!("set `{}` not found", set))?,
+        ["crate", krate] => scopes
+            .inner()
+            .krates
+            .get(*krate)
+            .context(format!("krate `{}` not found", krate))?,
         _ => Err(anyhow!("parsing scope `{}` failed", scope))?,
     };
     debug!(?scope);
@@ -50,7 +54,8 @@ fn search(
 
     let hits = index
         .search(
-            &query, scope,
+            &query,
+            scope.clone(),
             0.4, // NOTE(hkmatsumoto): Just a temporal value; maybe needs discussion in the future.
         )
         .with_context(|| format!("search with query `{:?}` failed", query))?;
@@ -65,15 +70,34 @@ fn search(
     ))
 }
 
+#[get("/scopes")]
+fn scopes(
+    scopes: &State<Scopes>,
+) -> Result<content::Json<String>, rocket::response::Debug<anyhow::Error>> {
+    let mut result = vec![];
+    for set in scopes.inner().sets.keys() {
+        result.push(format!("set:{}", set));
+    }
+    for krate in scopes.inner().krates.keys() {
+        result.push(format!("krate:{}", krate));
+    }
+
+    Ok(content::Json(
+        serde_json::to_string(&result).context("serializing scopes failed")?,
+    ))
+}
+
 #[launch]
 fn rocket() -> _ {
     init_logger();
 
-    let index = index().unwrap();
+    let index = make_index().unwrap();
+    let scopes = make_scopes().unwrap();
     rocket::build()
         .attach(Cors)
         .manage(index)
-        .mount("/", routes![search, search_with_data])
+        .manage(scopes)
+        .mount("/", routes![search, search_with_data, scopes])
 }
 
 fn init_logger() {
@@ -94,7 +118,7 @@ fn init_logger() {
         .init();
 }
 
-fn index() -> Result<Index> {
+fn make_index() -> Result<Index> {
     let crates = std::fs::read_dir("roogle-index/crate")
         .context("failed to read index files")?
         .map(|entry| {
@@ -121,6 +145,51 @@ fn index() -> Result<Index> {
         })
         .collect::<HashMap<_, _>>();
     Ok(Index { crates })
+}
+
+struct Scopes {
+    sets: HashMap<String, Scope>,
+    krates: HashMap<String, Scope>,
+}
+
+fn make_scopes() -> Result<Scopes> {
+    let krates: HashMap<String, Scope> = std::fs::read_dir("roogle-index/crate")
+        .context("failed to read crate files")?
+        .map(|entry| {
+            let entry = entry?;
+            let path = entry.path();
+            let krate = path.file_stem().unwrap().to_str().unwrap(); // SAFETY: files in `roogle-index` has a name.
+
+            Ok((krate.to_owned(), Scope::Crate(krate.to_owned())))
+        })
+        .filter_map(|res: Result<_, anyhow::Error>| {
+            if let Err(ref e) = res {
+                warn!("registering a scope skipped: {}", e)
+            }
+            res.ok()
+        })
+        .collect();
+    let sets: HashMap<String, Scope> = std::fs::read_dir("roogle-index/set")
+        .context("failed to read set files")?
+        .map(|entry| {
+            let entry = entry?;
+            let path = entry.path();
+            let json =
+                std::fs::read_to_string(&path).context(format!("failed to read `{:?}`", path))?;
+            let set = path.file_stem().unwrap().to_str().unwrap().to_owned(); // SAFETY: files in `roogle-index` has a name.
+            let krates = serde_json::from_str::<Vec<String>>(&json)
+                .context(format!("failed to deserialize set `{}`", &set))?;
+
+            Ok((set, Scope::Set(krates)))
+        })
+        .filter_map(|res: Result<_, anyhow::Error>| {
+            if let Err(ref e) = res {
+                warn!("registering a scope skipped: {}", e)
+            }
+            res.ok()
+        })
+        .collect();
+    Ok(Scopes { sets, krates })
 }
 
 struct Cors;
