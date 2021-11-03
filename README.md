@@ -35,3 +35,6 @@ $ curl -X GET \
       -d "fn (Option<Result<T, E>>) -> Result<Option<T>, E>>" \
       "localhost:8000/search?scope=set:libstd"
 ```
+
+## Related Project
+- [cargo-roogle](https://github.com/roogle-rs/cargo-roogle)
