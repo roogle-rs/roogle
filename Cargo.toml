@@ -2,4 +2,5 @@
 members = [
     "roogle",
     "roogle-engine",
+    "roogle-util",
 ]

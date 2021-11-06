@@ -14,6 +14,7 @@ use structopt::StructOpt;
 use tracing::{debug, warn};
 
 use roogle_engine::{query::parse::parse_query, search::Scope, Index};
+use roogle_util::shake;
 
 #[get("/search?<scope>", data = "<query>", rank = 2)]
 fn search_with_data(
@@ -144,7 +145,7 @@ fn make_index(opt: &Opt) -> Result<Index> {
                 .to_str()
                 .context("failed to get `&str` from `&OsStr`")?
                 .to_owned();
-            Ok((file_name, krate))
+            Ok((file_name, shake(krate)))
         })
         .filter_map(|res: Result<_, anyhow::Error>| {
             if let Err(ref e) = res {

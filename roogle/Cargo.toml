@@ -21,3 +21,7 @@ structopt = "0.3.25"
 [dependencies.roogle-engine]
 path = "../roogle-engine"
 version = "1.0.2"
+
+[dependencies.roogle-util]
+path = "../roogle-util"
+version = "0.1.0"
