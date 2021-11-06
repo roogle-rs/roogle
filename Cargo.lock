@@ -1006,6 +1006,7 @@ dependencies = [
  "anyhow",
  "rocket",
  "roogle-engine",
+ "roogle-util",
  "rustdoc-types",
  "serde_json",
  "structopt",
@@ -1025,6 +1026,13 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tracing",
+]
+
+[[package]]
+name = "roogle-util"
+version = "0.1.0"
+dependencies = [
+ "rustdoc-types",
 ]
 
 [[package]]
