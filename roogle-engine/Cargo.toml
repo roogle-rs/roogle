@@ -7,7 +7,7 @@ description = "A Rust API search engine"
 documentation = "https://docs.rs/roogle-engine"
 readme = "../README.md"
 homepage = "https://roogle.hkmatsumoto.com"
-repository = "https://github.com/hkmatsumoto/roogle"
+repository = "https://github.com/roogle-rs/roogle"
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
