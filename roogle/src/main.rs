@@ -10,6 +10,8 @@ use rocket::{
     response::content,
     State,
 };
+use rustdoc_types::Crate;
+use serde::Deserialize;
 use structopt::StructOpt;
 use tracing::{debug, warn};
 
@@ -135,7 +137,9 @@ fn make_index(opt: &Opt) -> Result<Index> {
             let entry = entry?;
             let json = std::fs::read_to_string(entry.path())
                 .with_context(|| format!("failed to read `{:?}`", entry.file_name()))?;
-            let krate = serde_json::from_str(&json)
+            let mut deserializer = serde_json::Deserializer::from_str(&json);
+            deserializer.disable_recursion_limit();
+            let krate = Crate::deserialize(&mut deserializer)
                 .with_context(|| format!("failed to deserialize `{:?}`", entry.file_name()))?;
             let file_name = entry
                 .path()
