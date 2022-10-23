@@ -78,7 +78,7 @@ impl Index {
             let krate = self
                 .crates
                 .get(&krate_name)
-                .ok_or(SearchError::CrateNotFound(krate_name.clone()))?;
+                .ok_or_else(|| SearchError::CrateNotFound(krate_name.clone()))?;
             for item in krate.index.values() {
                 match item.inner {
                     types::ItemEnum::Function(_) => {
@@ -100,10 +100,9 @@ impl Index {
                             .items
                             .iter()
                             .map(|id| {
-                                krate.index.get(id).ok_or(SearchError::ItemNotFound(
-                                    id.0.clone(),
-                                    krate_name.clone(),
-                                ))
+                                krate.index.get(id).ok_or_else(|| {
+                                    SearchError::ItemNotFound(id.0.clone(), krate_name.clone())
+                                })
                             })
                             .collect::<Result<Vec<_>>>()?;
                         for assoc_item in assoc_items {
@@ -184,10 +183,7 @@ impl Index {
             let path = krate
                 .paths
                 .get(id)
-                .ok_or(SearchError::ItemNotFound(
-                    id.0.clone(),
-                    krate_name.to_owned(),
-                ))?
+                .ok_or_else(|| SearchError::ItemNotFound(id.0.clone(), krate_name.to_owned()))?
                 .path
                 .clone();
 
@@ -217,10 +213,9 @@ impl Index {
                     _,
                 ) => {
                     path = get_path(id)?;
-                    let summary = krate.paths.get(id).ok_or(SearchError::ItemNotFound(
-                        id.0.clone(),
-                        krate_name.to_owned(),
-                    ))?;
+                    let summary = krate.paths.get(id).ok_or_else(|| {
+                        SearchError::ItemNotFound(id.0.clone(), krate_name.to_owned())
+                    })?;
                     match summary.kind {
                         types::ItemKind::Union => recv = format!("union.{}.html", name),
                         types::ItemKind::Enum => recv = format!("enum.{}.html", name),
