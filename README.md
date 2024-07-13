@@ -36,5 +36,12 @@ $ curl -X GET \
       "localhost:8000/search?scope=set:libstd"
 ```
 
+## Query Syntax
+
+- `fn f(type) -> type`
+- `fn (type) -> type`
+- `fn(type) -> type`
+- `(type) -> type`
+
 ## Related Project
 - [cargo-roogle](https://github.com/roogle-rs/cargo-roogle)
