@@ -2,7 +2,7 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, take_while1},
     character::complete::char,
-    character::complete::{alpha1, alphanumeric1, multispace0, multispace1},
+    character::complete::{alpha1, alphanumeric1, multispace0},
     combinator::{eof, fail, map, not, opt, recognize, value},
     error::{ContextError, ParseError},
     multi::{many0, separated_list0},
@@ -37,7 +37,7 @@ where
 {
     let (i, f) = opt(tag("fn"))(i)?;
     let (i, _) = match f {
-        Some(_) => multispace1(i)?,
+        Some(_) => multispace0(i)?,
         None => multispace0(i)?,
     };
     let (i, name) = opt(parse_symbol)(i)?;
