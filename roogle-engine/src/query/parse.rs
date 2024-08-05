@@ -37,10 +37,10 @@ where
 {
     let (i, f) = opt(tag("fn"))(i)?;
     let (i, _) = match f {
-        Some(_) => multispace1(i)?,
+        Some(_) => multispace0(i)?,
         None => multispace0(i)?,
     };
-    let (i, name) = opt(parse_symbol)(i)?;
+    let (i, name) = opt(preceded(multispace1, parse_symbol))(i)?;
     let (i, decl) = opt(parse_function)(i)?;
 
     let query = Query {
